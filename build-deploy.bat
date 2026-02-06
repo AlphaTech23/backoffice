@@ -63,17 +63,17 @@ xcopy "%PROJECT_CLASSES%" "%PROJECT_BUILD%\WEB-INF\classes" /E /I /Y >nul
 echo.
 echo === Creation du fichier WAR ===
 cd "%PROJECT_BUILD%"
-jar cf "%BUILD_DIR%\framework.war" *
+jar cf "%BUILD_DIR%\backoffice.war" *
 cd "%PROJECT_DIR%"
 
-echo WAR genere : %BUILD_DIR%\framework.war
+echo WAR genere : %BUILD_DIR%\backoffice.war
 
 REM ==========================================================
 REM === DePLOIEMENT SUR TOMCAT ===============================
 REM ==========================================================
 echo.
 echo === Deploiement sur Tomcat ===
-copy "%BUILD_DIR%\framework.war" "%CATALINA_HOME%\webapps" /Y >nul
+copy "%BUILD_DIR%\backoffice.war" "%CATALINA_HOME%\webapps" /Y >nul
 
 if errorlevel 1 (
     echo echec du deploiement sur Tomcat
