@@ -14,7 +14,8 @@ CREATE MODELS
 
 features 3:(ETU003340)
 IMPLEMENTS RESERVATION FORM
-- creation de la fonction List<Hotel> getAll() dans HotelService 
+- creation de la fonction List<Hotel> getAll() dans HotelRepository
+- creation de la fonction List<Hotel> getAll() dans HotelService
 - exposition de getAll dans HotelController (=> return ModelAndView)
 - creation de la fonction Reservation reserver(idClient, nombrePassager, dateArrive, idHotel) dans ReservationService
 - exposition de reserver dans le controller (=> return ModelAndView)
@@ -22,7 +23,8 @@ IMPLEMENTS RESERVATION FORM
 
 features 4: (ETU003309)
 IMPLEMENTS RESERVATION LIST
-- creation de la fonction getByDateArrive(date) dans ReservationRepository
-- creation de la fonction getAll(date) dans ReservationService (si date null getAll())
+- creation de la fonction List<Reservation> getByDateArrive(date), List<Reservation> getAll()  dans ReservationREpository
+- creation de la fonction getByDateArrive(date) dans ReservationService (si date null return getAll())
 - exposion du Endpoint dans ReservationController (=> return JSON) 
+- creation du controller pour afficher la page
 - creation de la liste des reservation par appel de l'api
