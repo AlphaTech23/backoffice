@@ -56,7 +56,7 @@ mkdir "%PROJECT_BUILD%\WEB-INF"
 mkdir "%PROJECT_BUILD%\WEB-INF\lib"
 mkdir "%PROJECT_BUILD%\WEB-INF\classes"
 
-xcopy "%PROJECT_DIR%\webapp" "%PROJECT_BUILD%" /E /I /Y >nul
+xcopy "%PROJECT_DIR%src\webapp" "%PROJECT_BUILD%" /E /I /Y >nul
 xcopy "%PROJECT_DIR%\lib\framework.jar" "%PROJECT_BUILD%\WEB-INF\lib" /E /I /Y >nul
 xcopy "%PROJECT_CLASSES%" "%PROJECT_BUILD%\WEB-INF\classes" /E /I /Y >nul
 
