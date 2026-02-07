@@ -25,3 +25,16 @@ CREATE TABLE reservation (
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
+
+INSERT INTO hotel (nom) VALUES
+('Hotel Ivato Airport'),
+('Radisson Blu Antananarivo Waterfront'),
+('Carlton Madagascar'),
+('Le Louvre Hotel & Spa'),
+('Palissandre Hotel & Spa'),
+('Hotel Colbert'),
+('Relais des Plateaux'),
+('Sunny Hotel Ivato'),
+('Hotel Tamboho'),
+('Asia & Africa Hotel');
+
