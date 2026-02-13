@@ -1,0 +1,38 @@
+TL : ETU003301
+DEV: ETU03340, ETU003309
+
+features 1: (ETU003340)
+UPDATE SCRIPT SQL
+	- Création table hotel
+	- Création table reservation
+	- Insert data test dans hotel
+
+features 2: (ETU003309)
+CREATE MODELS
+	- Création des entités:
+		* Hotel
+			Integer id
+			String nom
+			
+		* Reservation
+			Integer id
+			String idClient
+			Integer nombrePassager
+			LocalDateTime dateArrive
+			Hotel hotel
+
+features 3: (ETU003340)
+CREATE RESERVATION FORM
+	- Création de la fonction List<Hotel> getAll() dans HotelRepository
+	- Création de la fonction List<Hotel> getAll() dans HotelService
+	- Exposition endpoint GET /api/hotels dans HotelController (=> return ModelAndView)
+	- Création de la fonction Reservation reserver(idClient, nombrePassager, dateArrive, idHotel) dans ReservationService
+	- Exposition endpoint POST /api/reservations dans ReservationController (=> return ModelAndView)
+	- Création du formulaire reservation/form.jsp (liste déroulante des hotels et bouton action reserver)
+
+features 4: (ETU003309)
+CREATE ENDPOINT 
+	- Création de la fonction List<Reservation> getByDateArrive(date), List<Reservation> getAll() dans ReservationREpository
+	- Création de la fonction getByDateArrive(date) dans ReservationService (si date == null ➜ return getAll())
+	- Exposition endpoint GET /api/reservations dans ReservationController (=> return JSON) 
+	- Exposition endpoint GET /api/reservations?date={yyyy-MM-dd} dans ReservationController (=> return JSON) 
