@@ -1,7 +1,7 @@
 package com.example.backoffice.repository;
 
 import com.example.backoffice.dao.DAO;
-import com.example.model.Hotel;
+import com.example.backoffice.model.Hotel;
 
 import java.util.List;
 

@@ -6,6 +6,7 @@ import com.example.framework.annotations.GetMapping;
 import com.example.framework.annotations.PostMapping;
 import com.example.framework.core.ModelView;
 import com.example.backoffice.service.HotelService;
+import com.example.backoffice.model.Reservation;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -67,4 +68,10 @@ public class ReservationController {
         return mv;
     }
 
+
+@GetMapping("/api/reservations")
+@RestAPI
+public List<Reservation> getReservations(String date) throws Exception {
+    return reservationService.getByDateArrive(date)
+}
 }

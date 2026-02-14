@@ -1,7 +1,10 @@
 package com.example.backoffice.repository;
 
 import com.example.backoffice.dao.DAO;
-import com.example.model.Reservation;
+import com.example.backoffice.model.Reservation;
+import java.util.List;
+import java.time.LocalDateTime;
+
 
 import java.sql.Timestamp;
 
@@ -21,5 +24,15 @@ public class ReservationRepository {
                 Timestamp.valueOf(reservation.getDateArrive()),
                 reservation.getHotel().getId()
         );
+    }
+
+      public List<Reservation> getAll() throws Exception {
+        return DAO.getList("SELECT * FROM reservation", Reservation.class);
+    }
+
+    public List<Reservation> getByDateArrive(LocalDateTime dateArrive) throws Exception {
+        // Casting timestamp to date for day matching as per requirement usually for 'date' param
+        // PostreSQL syntax: date(date_arrive)
+        return DAO.getList("SELECT * FROM reservation WHERE date(date_arrive) = date(?)", Reservation.class, dateArrive);
     }
 }
