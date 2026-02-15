@@ -1,7 +1,7 @@
 package com.example.backoffice.service;
 
 import com.example.backoffice.repository.HotelRepository;
-import com.example.model.Hotel;
+import com.example.backoffice.model.Hotel;
 
 import java.util.List;
 

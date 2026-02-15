@@ -1,8 +1,12 @@
 package com.example.backoffice.service;
 
 import com.example.backoffice.repository.ReservationRepository;
-import com.example.model.Hotel;
-import com.example.model.Reservation;
+import com.example.backoffice.model.Hotel;
+import com.example.backoffice.model.Reservation;
+import java.util.List;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 
 import java.time.LocalDateTime;
 
@@ -31,5 +35,17 @@ public class ReservationService {
         reservationRepository.save(reservation);
 
         return reservation;
+    }
+
+    public List<Reservation> getByDateArrive(String dateStr) throws Exception {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return reservationRepository.getAll();
+        }
+
+        // Expected format yyyy-MM-dd
+        LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        LocalDateTime startOfDay = date.atStartOfDay();
+        
+        return reservationRepository.getByDateArrive(startOfDay);
     }
 }
