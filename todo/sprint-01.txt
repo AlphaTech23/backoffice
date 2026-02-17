@@ -32,6 +32,6 @@ CREATE RESERVATION FORM
 
 features 4: (ETU003309)
 CREATE ENDPOINT 
-	- Création de la fonction List<Reservation> getByDateArrive(date), List<Reservation> getAll() dans ReservationREpository
+	- Création de la fonction List<Reservation> getByDateArrive(LocalDate date), List<Reservation> getAll() dans ReservationRepository
 	- Création de la fonction getByDateArrive(date) dans ReservationService (si date == null ➜ return getAll())
 	- Exposition endpoint GET /api/reservations?date={yyyy-MM-dd} dans ReservationController (=> return JSON) 
