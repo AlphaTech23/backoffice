@@ -31,6 +31,6 @@ public class ReservationRepository {
     }
 
     public List<Reservation> getByDateArrive(LocalDateTime dateArrive) throws Exception {
-        return DAO.getList("SELECT * FROM reservation WHERE date(date_arrive) = date(?)", Reservation.class, dateArrive);
+        return DAO.getList("SELECT * FROM reservation WHERE date(date_arrive) = date(?)", Reservation.class, Timestamp.valueOf(dateArrive));
     }
 }
