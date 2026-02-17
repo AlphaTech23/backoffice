@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.example.model.Hotel" %>
+<%@ page import="com.example.backoffice.model.Hotel" %>
 
 <!DOCTYPE html>
 <html lang="fr">
@@ -254,9 +254,6 @@
                                 %>
                                     <option value="<%= h.getId() %>" class="hotel-option">
                                         🏨 <%= h.getNom() %>
-                                        <% if (h.getAdresse() != null) { %>
-                                            - <%= h.getAdresse() %>
-                                        <% } %>
                                     </option>
                                 <%
                                         }
