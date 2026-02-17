@@ -1,8 +1,9 @@
 package com.example.backoffice.dao;
 
-import java.sql.*;
-import java.util.*;
 import java.lang.reflect.*;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class DAO {
 
@@ -30,8 +31,7 @@ public class DAO {
                 stmt.setObject(i + 1, params[i]);
             }
 
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows;
+            return stmt.executeUpdate();
         }
     }
 
@@ -53,6 +53,7 @@ public class DAO {
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
+
                 ResultSetMetaData meta = rs.getMetaData();
                 int colCount = meta.getColumnCount();
 
@@ -63,21 +64,48 @@ public class DAO {
                         String colName = meta.getColumnLabel(i);
                         Object value = rs.getObject(i);
 
-                        String fieldName = toCamelCase(colName);
-
-                        try {
-                            Field field = clazz.getDeclaredField(fieldName);
-                            field.setAccessible(true);
-                            field.set(obj, value);
-                        } catch (NoSuchFieldException ignored) {
+                        if (!colName.startsWith("id_")) {
+                            mapField(obj, colName, value);
                         }
                     }
+
+                    mapNestedObjectsLazy(obj, rs);
+
                     resultList.add(obj);
                 }
             }
         }
 
         return resultList;
+    }
+
+    private static void mapField(Object obj, String columnName, Object value) throws Exception {
+        String fieldName = toCamelCase(columnName);
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            assignValue(obj, field, value);
+        } catch (NoSuchFieldException ignored) {
+        }
+    }
+
+    private static void assignValue(Object obj, Field field, Object value) throws IllegalAccessException {
+        if (value == null)
+            return;
+        if (value instanceof Timestamp && field.getType().equals(LocalDateTime.class)) {
+            field.set(obj, ((Timestamp) value).toLocalDateTime());
+        } else {
+            field.set(obj, value);
+        }
+    }
+
+    private static boolean isSimpleType(Class<?> clazz) {
+        return clazz.isPrimitive()
+                || clazz == String.class
+                || Number.class.isAssignableFrom(clazz)
+                || clazz == Boolean.class
+                || clazz == LocalDateTime.class
+                || clazz == java.util.Date.class;
     }
 
     private static String toCamelCase(String snake) {
@@ -93,4 +121,31 @@ public class DAO {
         }
         return sb.toString();
     }
+
+    private static void mapNestedObjectsLazy(Object parent, ResultSet rs) throws Exception {
+        for (Field field : parent.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            Class<?> type = field.getType();
+            if (isSimpleType(type))
+                continue;
+
+            String table = type.getSimpleName().toLowerCase();
+            String idColumn = "id_" + table;
+            Object idValue;
+            try {
+                idValue = rs.getObject(idColumn);
+            } catch (SQLException e) {
+                continue;
+            }
+
+            if (idValue != null) {
+                String sql = "SELECT * FROM " + table + " WHERE id = ?";
+                Object nestedObj = get(sql, type, idValue);
+                if (nestedObj != null) {
+                    field.set(parent, nestedObj);
+                }
+            }
+        }
+    }
+
 }
