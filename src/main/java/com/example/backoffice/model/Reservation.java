@@ -1,4 +1,4 @@
-package com.example.backoffice.models;
+package com.example.backoffice.model;
 
 import java.time.LocalDateTime;
 

@@ -1,8 +1,9 @@
-package com.example.backoffice.controllers;
+package com.example.backoffice.controller;
 
 import com.example.backoffice.service.ReservationService;
 import com.example.framework.annotations.Controller;
 import com.example.framework.annotations.GetMapping;
+import com.example.framework.annotations.Json;
 import com.example.framework.annotations.PostMapping;
 import com.example.framework.core.ModelView;
 import com.example.backoffice.service.HotelService;
@@ -25,12 +26,12 @@ public class ReservationController {
     @GetMapping("/reservation/form")
     public ModelView form() {
 
-        ModelView mv = new ModelView("reservation/form");
+        ModelView mv = new ModelView("/reservation/form.jsp");
 
         try {
             mv.addAttribute("hotels", hotelService.getAll());
         } catch (Exception e) {
-            mv.addAttribute("hotels", List.of()); 
+            mv.addAttribute("hotels", List.of());
             mv.addAttribute("error", "Impossible de charger la liste des hôtels : " + e.getMessage());
         }
 
@@ -43,7 +44,7 @@ public class ReservationController {
             String dateArrive,
             Integer idHotel) {
 
-        ModelView mv = new ModelView("reservation/form"); 
+        ModelView mv = new ModelView("/reservation/form.jsp");
 
         try {
             reservationService.reserver(
@@ -68,10 +69,9 @@ public class ReservationController {
         return mv;
     }
 
-
-@GetMapping("/api/reservations")
-@RestAPI
-public List<Reservation> getReservations(String date) throws Exception {
-    return reservationService.getByDateArrive(date)
-}
+    @GetMapping("/api/reservations")
+    @Json
+    public List<Reservation> getReservations(String date) throws Exception {
+        return reservationService.getByDateArrive(date);
+    }
 }

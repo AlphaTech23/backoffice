@@ -1,4 +1,4 @@
-package com.example.backoffice.models;
+package com.example.backoffice.model;
 
 public class Hotel {
     private Integer id;
