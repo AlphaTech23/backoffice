@@ -64,8 +64,10 @@ public class DAO {
                         String colName = meta.getColumnLabel(i);
                         Object value = rs.getObject(i);
 
-                        if (!colName.startsWith("id_")) {
+                        try {
                             mapField(obj, colName, value);
+                        } catch (Exception e) {
+                            // Ignore mapping errors for missing fields
                         }
                     }
 
