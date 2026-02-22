@@ -37,7 +37,7 @@ if not defined SRC_FILES (
     exit /b 1
 )
 
-javac -parameters -cp "%LIB%" -d "%PROJECT_CLASSES%" !SRC_FILES!
+javac -encoding UTF-8 -parameters -cp "%LIB%" -d "%PROJECT_CLASSES%" !SRC_FILES!
 if errorlevel 1 (
     echo Erreur de compilation du projet PROJECT
     exit /b 1
