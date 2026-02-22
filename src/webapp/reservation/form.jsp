@@ -208,8 +208,6 @@
                                 <input type="number" 
                                        class="form-control" 
                                        name="nombrePassager" 
-                                       min="1" 
-                                       max="10"
                                        value="1"
                                        placeholder="Nombre de personnes"
                                        required />
