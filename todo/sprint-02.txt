@@ -1,0 +1,60 @@
+TL : ETU003340
+DEV : ETU003301, ETU003309
+
+features 1 : (ETU003301)
+UPDATE SCRIPT SQL
+    - Création table type_carburant
+    - Création table vehicule
+    - Création table token
+    
+features 2 : (ETU003301)
+CREATE MODELS
+    - Création des entités :
+        * TypeCarburant
+            Integer id
+            String libelle
+
+        * Vehicule
+            Integer id
+            String reference
+            Integer capacite
+            TypeCarburant typeCarburant
+
+        * Token
+            Integer id
+            String token
+            LocalDateTime dateExpiration
+
+features 3 : (ETU003309)
+CRUD VEHICULE
+    - TypeCarburantRepository
+        List<TypeCarburant> getAll()
+    - TypeCarburantService
+        List<TypeCarburant> getAll()
+    - VehiculeRepository 
+        void create(Vehicule v)
+        void update(Vehicule v)
+        void delete(Integer id)
+        List<Vehicule> getAll()
+    - VehiculeService
+        void create(String reference, Integer capacite, Integer idTypeCarburant)
+        void update(Integer id, String reference, Integer capacite, Integer idTypeCarburant)
+        void delete(Integer id)
+        List<Vehicule> getAll()
+    - VehiculeController
+        Création endpoint PostMapping /vehicule
+            ModelView actionVehicule(String action, Integer id, String reference, Integer capacite, Integer idTypeCarburant)
+            action = create / delete / update
+        Création endpoint GetMapping /vehicules
+            ModelView list()
+    - Création de la page vehicule/list.jsp avec integration
+
+features 4 : (ETU003301)
+SECURITY TOKEN
+    - TokenRepository
+        Token findByValue(String token)
+    - TokenService
+        boolean isValid(String tokenValue)
+    - SecurityUtil
+        void checkAuthorized(HttpServletRequest request)
+    - Integration dans les controllers (API)
