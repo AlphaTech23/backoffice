@@ -48,6 +48,10 @@ CRUD VEHICULE
         Création endpoint GetMapping /vehicules
             ModelView list()
     - Création de la page vehicule/list.jsp avec integration
+        Affichage liste vehicule
+        Form ajout
+        Form modification
+        Bouton supprimer
 
 features 4 : (ETU003301)
 SECURITY TOKEN
