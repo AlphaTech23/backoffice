@@ -1,6 +1,7 @@
 package com.example.backoffice.controller;
 
 import com.example.backoffice.service.ReservationService;
+import com.example.framework.annotations.Authorized;
 import com.example.framework.annotations.Controller;
 import com.example.framework.annotations.GetMapping;
 import com.example.framework.annotations.Json;
@@ -71,6 +72,7 @@ public class ReservationController {
 
     @GetMapping("/api/reservations")
     @Json
+    @Authorized
     public List<Reservation> getReservations(String date) throws Exception {
         return reservationService.getByDateArrive(date);
     }

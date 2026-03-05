@@ -11,8 +11,8 @@
     </context-param>
     
     <context-param>
-        <param-name>role-attribute-name</param-name>
-        <param-value>role</param-value>
+        <param-name>user-session-name</param-name>
+        <param-value>token</param-value>
     </context-param>
 
     <!-- Initialisation du framework -->
