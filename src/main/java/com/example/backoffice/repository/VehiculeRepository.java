@@ -8,12 +8,12 @@ import java.util.List;
 public class VehiculeRepository {
 
     public void create(Vehicule v) throws Exception {
-        String sql = "INSERT INTO vehicule(reference, capacite, id_typecarburant) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO vehicule(reference, capacite, id_type_carburant) VALUES (?, ?, ?)";
         DAO.executeUpdate(sql, v.getReference(), v.getCapacite(), v.getTypeCarburant().getId());
     }
 
     public void update(Vehicule v) throws Exception {
-        String sql = "UPDATE vehicule SET reference=?, capacite=?, id_typecarburant=? WHERE id=?";
+        String sql = "UPDATE vehicule SET reference=?, capacite=?, id_type_carburant=? WHERE id=?";
         DAO.executeUpdate(sql, v.getReference(), v.getCapacite(), v.getTypeCarburant().getId(), v.getId());
     }
 
