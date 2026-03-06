@@ -1,332 +1,375 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.backoffice.model.Hotel" %>
+<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.format.DateTimeFormatter" %>
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réservation d'hôtel</title>
+    <title>Réservation d'hôtel | Formulaire</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Animation CSS -->
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95);
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out forwards;
         }
         
-        .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px 15px 0 0 !important;
-            padding: 20px;
-            border: none;
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         }
         
-        .card-header h2 {
-            margin: 0;
-            font-size: 1.8rem;
-            font-weight: 300;
-        }
-        
-        .form-label {
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 0.5rem;
-        }
-        
-        .form-control, .form-select {
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 12px;
-            transition: all 0.3s;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-        
-        .input-group-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px 0 0 10px;
-        }
-        
-        .btn-reserver {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 30px;
-            font-weight: 500;
-            font-size: 1.1rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            width: 100%;
-        }
-        
-        .btn-reserver:hover {
+        .hover-lift:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            color: white;
+            transition: transform 0.2s ease;
         }
         
-        .btn-reserver i {
-            margin-right: 10px;
-        }
-        
-        .alert {
-            border-radius: 10px;
-            border: none;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-            color: #155724;
-        }
-        
-        .alert-danger {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: #721c24;
-        }
-        
-        .hotel-option {
-            padding: 10px;
-        }
-        
-        .required-field::after {
-            content: " *";
-            color: #dc3545;
-            font-weight: bold;
-        }
-        
-        .form-text {
-            color: #6c757d;
-            font-size: 0.85rem;
-            margin-top: 5px;
+        .input-focus-effect:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
     </style>
 </head>
-<body>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <%
+        String message = (String) request.getAttribute("message");
+        String error = (String) request.getAttribute("error");
+        List<Hotel> hotels = (List<Hotel>) request.getAttribute("hotels");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    %>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card">
-                <div class="card-header text-center">
-                    <h2>
-                        <i class="bi bi-calendar-check"></i>
-                        Réservation d'hôtel
-                    </h2>
-                    <p class="mb-0 mt-2">Complétez le formulaire ci-dessous</p>
-                </div>
-                
-                <div class="card-body p-4">
-                    
-                    <!-- Messages de succès -->
-                    <%
-                        String message = (String) request.getAttribute("message");
-                        if (message != null) {
-                    %>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            <%= message %>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <%
-                        }
-                    %>
+    <!-- Conteneur principal -->
+    <div class="max-w-2xl w-full animate-slide-in">
+        <!-- En-tête avec titre -->
+        <div class="text-center mb-8">
+            <div class="inline-block p-4 bg-white/10 backdrop-blur-lg rounded-full mb-4">
+                <i class="fas fa-hotel text-white text-4xl"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-white mb-2">Réservation d'hôtel</h1>
+            <p class="text-white/80 text-lg">Complétez le formulaire ci-dessous pour réserver votre séjour</p>
+        </div>
 
-                    <!-- Messages d'erreur -->
-                    <%
-                        String error = (String) request.getAttribute("error");
-                        if (error != null) {
-                    %>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            <%= error %>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <%
-                        }
-                    %>
-
-                    <form action="${pageContext.request.contextPath}/reservation/reserver" method="post">
-                        
-                        <!-- ID Client -->
-                        <div class="mb-4">
-                            <label class="form-label required-field">
-                                <i class="bi bi-person-badge"></i>
-                                ID Client
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-hash"></i>
-                                </span>
-                                <input type="text" 
-                                       class="form-control" 
-                                       name="idClient" 
-                                       maxlength="4" 
-                                       pattern="[0-9]{4}" 
-                                       title="Veuillez saisir exactement 4 chiffres"
-                                       placeholder="Ex: 1234"
-                                       required />
-                            </div>
-                            <div class="form-text">
-                                <i class="bi bi-info-circle"></i>
-                                Saisissez 4 chiffres exactement
-                            </div>
-                        </div>
-
-                        <!-- Nombre de passagers -->
-                        <div class="mb-4">
-                            <label class="form-label required-field">
-                                <i class="bi bi-people"></i>
-                                Nombre de passagers
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-person-plus"></i>
-                                </span>
-                                <input type="number" 
-                                       class="form-control" 
-                                       name="nombrePassager" 
-                                       value="1"
-                                       placeholder="Nombre de personnes"
-                                       required />
-                            </div>
-                            <div class="form-text">
-                                <i class="bi bi-info-circle"></i>
-                                Minimum 1 personne
-                            </div>
-                        </div>
-
-                        <!-- Date d'arrivée -->
-                        <div class="mb-4">
-                            <label class="form-label required-field">
-                                <i class="bi bi-calendar-date"></i>
-                                Date et heure d'arrivée
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-clock"></i>
-                                </span>
-                                <input type="datetime-local" 
-                                       class="form-control" 
-                                       name="dateArrive" 
-                                       required />
-                            </div>
-                        </div>
-
-                        <!-- Sélection hôtel -->
-                        <div class="mb-4">
-                            <label class="form-label required-field">
-                                <i class="bi bi-building"></i>
-                                Hôtel
-                            </label>
-                            <select class="form-select" name="idHotel" required>
-                                <option value="" selected disabled>
-                                    <i class="bi bi-building"></i> Choisissez un hôtel...
-                                </option>
-                                <%
-                                    List<Hotel> hotels = (List<Hotel>) request.getAttribute("hotels");
-                                    if (hotels != null && !hotels.isEmpty()) {
-                                        for (Hotel h : hotels) {
-                                %>
-                                    <option value="<%= h.getId() %>" class="hotel-option">
-                                        🏨 <%= h.getNom() %>
-                                    </option>
-                                <%
-                                        }
-                                    } else {
-                                %>
-                                    <option value="" disabled>Aucun hôtel disponible</option>
-                                <%
-                                    }
-                                %>
-                            </select>
-                            <% if (hotels != null && !hotels.isEmpty()) { %>
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle"></i>
-                                    <%= hotels.size() %> hôtel(s) disponible(s)
-                                </div>
-                            <% } %>
-                        </div>
-
-                        <!-- Bouton de soumission -->
-                        <button type="submit" class="btn btn-reserver">
-                            <i class="bi bi-check-circle"></i>
-                            Confirmer la réservation
-                        </button>
-                        
-                        <!-- Lien de retour (optionnel) -->
-                        <div class="text-center mt-3">
-                            <a href="${pageContext.request.contextPath}/" class="text-decoration-none">
-                                <i class="bi bi-arrow-left"></i>
-                                Retour à l'accueil
-                            </a>
-                        </div>
-                    </form>
+        <!-- Carte principale -->
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Barre de progression (optionnelle) -->
+            <div class="bg-gray-50 px-8 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2 text-sm">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-gray-600">Disponibilités en temps réel</span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        <i class="far fa-clock mr-1"></i>
+                        <%= LocalDateTime.now().format(timeFormatter) %>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Pied de page avec information -->
-            <div class="text-center mt-4 text-white">
-                <small>
-                    <i class="bi bi-shield-check"></i>
-                    Les champs marqués d'un astérisque (*) sont obligatoires
-                </small>
+
+            <!-- Corps du formulaire -->
+            <div class="p-8">
+                <!-- Messages d'alerte -->
+                <% if (message != null && !message.isEmpty()) { %>
+                    <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-0.5 mr-3"></i>
+                        <div>
+                            <p class="text-green-800 font-medium">Succès !</p>
+                            <p class="text-green-600 text-sm"><%= message %></p>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                <% } %>
+
+                <% if (error != null && !error.isEmpty()) { %>
+                    <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start">
+                        <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
+                        <div>
+                            <p class="text-red-800 font-medium">Erreur</p>
+                            <p class="text-red-600 text-sm"><%= error %></p>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                <% } %>
+
+                <form action="${pageContext.request.contextPath}/reservation/reserver" method="post" class="space-y-6" id="reservationForm">
+                    <!-- ID Client avec validation visuelle -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">
+                            <i class="fas fa-id-card text-indigo-500 mr-2"></i>
+                            ID Client
+                            <span class="text-red-500 ml-1">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-hashtag text-gray-400"></i>
+                            </div>
+                            <input type="text" 
+                                   name="idClient" 
+                                   maxlength="4"
+                                   pattern="[0-9]{4}"
+                                   title="Veuillez saisir exactement 4 chiffres"
+                                   placeholder="1234"
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                   required
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                        <div class="flex items-center text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Saisissez exactement 4 chiffres
+                        </div>
+                    </div>
+
+                    <!-- Nombre de passagers avec sélecteur visuel -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">
+                            <i class="fas fa-users text-indigo-500 mr-2"></i>
+                            Nombre de passagers
+                            <span class="text-red-500 ml-1">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input type="number" 
+                                   name="nombrePassager" 
+                                   min="1"
+                                   max="10"
+                                   value="1"
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                   required>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-gray-500"><i class="fas fa-info-circle mr-1"></i>Minimum 1 personne</span>
+                            <span class="text-gray-500">Maximum 10 personnes</span>
+                        </div>
+                    </div>
+
+                    <!-- Date et heure d'arrivée avec design amélioré -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">
+                            <i class="fas fa-calendar-alt text-indigo-500 mr-2"></i>
+                            Date et heure d'arrivée
+                            <span class="text-red-500 ml-1">*</span>
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-calendar text-gray-400"></i>
+                                </div>
+                                <input type="date" 
+                                       id="dateArrive"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       required>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-clock text-gray-400"></i>
+                                </div>
+                                <input type="time" 
+                                       id="timeArrive"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       required>
+                            </div>
+                        </div>
+                        <!-- Champ caché pour la combinaison date+time -->
+                        <input type="hidden" name="dateArrive" id="dateArriveCombined">
+                    </div>
+
+                    <!-- Sélection hôtel avec design moderne -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">
+                            <i class="fas fa-building text-indigo-500 mr-2"></i>
+                            Hôtel
+                            <span class="text-red-500 ml-1">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            </div>
+                            <select name="idHotel" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors appearance-none bg-white" required>
+                                <option value="" selected disabled>Sélectionnez un hôtel</option>
+                                <% if (hotels != null && !hotels.isEmpty()) { 
+                                    for (Hotel h : hotels) { 
+                                        // Simulation de disponibilité (à remplacer par des données réelles)
+                                        boolean disponible = Math.random() > 0.3;
+                                %>
+                                    <option value="<%= h.getId() %>" class="py-2">
+                                        🏨 <%= h.getNom() %>
+                                        <% if (disponible) { %>
+                                            <span class="text-green-500 text-xs ml-2">● Disponible</span>
+                                        <% } %>
+                                    </option>
+                                <% } } else { %>
+                                    <option value="" disabled>Aucun hôtel disponible</option>
+                                <% } %>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                        </div>
+                        <% if (hotels != null && !hotels.isEmpty()) { %>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                <%= hotels.size() %> hôtel(s) disponible(s) à la réservation
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Récapitulatif rapide (optionnel) -->
+                    <div class="bg-indigo-50 rounded-xl p-4 mt-6">
+                        <h3 class="text-sm font-semibold text-indigo-900 mb-2 flex items-center">
+                            <i class="fas fa-clipboard-list mr-2"></i>
+                            Récapitulatif de votre réservation
+                        </h3>
+                        <div class="text-xs text-indigo-700 space-y-1" id="recap">
+                            <p><i class="fas fa-id-card mr-1"></i> Client: <span id="recapClient">Non spécifié</span></p>
+                            <p><i class="fas fa-users mr-1"></i> Passagers: <span id="recapPassagers">1</span></p>
+                            <p><i class="fas fa-calendar mr-1"></i> Arrivée: <span id="recapDate">Non spécifiée</span></p>
+                            <p><i class="fas fa-building mr-1"></i> Hôtel: <span id="recapHotel">Non sélectionné</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Bouton de soumission -->
+                    <button type="submit" 
+                            class="w-full gradient-bg text-white py-4 px-6 rounded-xl font-semibold text-lg hover:opacity-90 transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center justify-center">
+                        <i class="fas fa-check-circle mr-3"></i>
+                        Confirmer la réservation
+                    </button>
+
+                    <!-- Lien retour -->
+                    <div class="text-center mt-4">
+                        <a href="${pageContext.request.contextPath}/" 
+                           class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Retour à l'accueil
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
+
+        <!-- Pied de page avec informations -->
+        <div class="mt-6 text-center text-white/80 text-sm">
+            <div class="flex items-center justify-center space-x-4">
+                <span><i class="fas fa-shield-alt mr-1"></i> Paiement sécurisé</span>
+                <span>•</span>
+                <span><i class="fas fa-lock mr-1"></i> Données confidentielles</span>
+                <span>•</span>
+                <span><i class="fas fa-clock mr-1"></i> Confirmation immédiate</span>
+            </div>
+            <p class="mt-2 text-white/60 text-xs">
+                Les champs marqués d'un astérisque (*) sont obligatoires
+            </p>
+        </div>
     </div>
-</div>
 
-<!-- Bootstrap JS et Popper.js -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Validation côté client (optionnel) -->
-<script>
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const idClient = document.querySelector('input[name="idClient"]').value;
-        if (!/^\d{4}$/.test(idClient)) {
-            e.preventDefault();
-            alert('L\'ID client doit contenir exactement 4 chiffres.');
-        }
-    });
-    
-    // Mettre la date minimum à aujourd'hui
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateInput = document.querySelector('input[name="dateArrive"]');
-        if (dateInput) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
+    <!-- JavaScript pour les fonctionnalités interactives -->
+    <script>
+        // Configuration de la date minimum (aujourd'hui)
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('dateArrive');
+            const timeInput = document.getElementById('timeArrive');
+            const hiddenInput = document.getElementById('dateArriveCombined');
             
-            const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-            dateInput.min = minDateTime;
-        }
-    });
-</script>
+            // Set minimum date to today
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.min = `${yyyy}-${mm}-${dd}`;
+            
+            // Set default time to now + 1 hour (rounded to nearest hour)
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            now.setMinutes(0);
+            const hours = String(now.getHours()).padStart(2, '0');
+            timeInput.value = `${hours}:00`;
 
+            // Mettre à jour le champ caché et le récapitulatif
+            function updateDateTime() {
+                if (dateInput.value && timeInput.value) {
+                    hiddenInput.value = `${dateInput.value}T${timeInput.value}`;
+                    updateRecap();
+                }
+            }
+
+            dateInput.addEventListener('change', updateDateTime);
+            timeInput.addEventListener('change', updateDateTime);
+            
+            // Initial update
+            updateDateTime();
+
+            // Gestion de l'ID client pour le récapitulatif
+            document.querySelector('input[name="idClient"]').addEventListener('input', function(e) {
+                document.getElementById('recapClient').textContent = this.value || 'Non spécifié';
+            });
+
+            // Gestion du nombre de passagers
+            document.querySelector('input[name="nombrePassager"]').addEventListener('input', function(e) {
+                document.getElementById('recapPassagers').textContent = this.value || '0';
+            });
+
+            // Gestion de l'hôtel
+            document.querySelector('select[name="idHotel"]').addEventListener('change', function(e) {
+                const selectedOption = this.options[this.selectedIndex];
+                const hotelName = selectedOption ? selectedOption.text.replace(/[● Disponible]/g, '').trim() : 'Non sélectionné';
+                document.getElementById('recapHotel').textContent = hotelName;
+            });
+
+            function updateRecap() {
+                const dateValue = dateInput.value;
+                const timeValue = timeInput.value;
+                if (dateValue && timeValue) {
+                    const [year, month, day] = dateValue.split('-');
+                    document.getElementById('recapDate').textContent = `${day}/${month}/${year} à ${timeValue}`;
+                }
+            }
+
+            // Validation du formulaire
+            document.getElementById('reservationForm').addEventListener('submit', function(e) {
+                const idClient = document.querySelector('input[name="idClient"]').value;
+                if (!/^\d{4}$/.test(idClient)) {
+                    e.preventDefault();
+                    alert('L\'ID client doit contenir exactement 4 chiffres.');
+                    return;
+                }
+
+                if (!dateInput.value || !timeInput.value) {
+                    e.preventDefault();
+                    alert('Veuillez sélectionner une date et une heure d\'arrivée.');
+                    return;
+                }
+
+                // Vérifier que la date n'est pas dans le passé
+                const selectedDate = new Date(hiddenInput.value);
+                if (selectedDate < new Date()) {
+                    e.preventDefault();
+                    alert('La date d\'arrivée ne peut pas être dans le passé.');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
