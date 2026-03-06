@@ -32,7 +32,7 @@ public class VehiculeController {
         return mv;
     }
 
-    @PostMapping("/vehicule")
+    @PostMapping("/vehicules")
     public ModelView actionVehicule(String action, Integer id, String reference, Integer capacite, Integer idTypeCarburant) {
         ModelView mv = new ModelView("/vehicule/list.jsp");
 
