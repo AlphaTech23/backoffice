@@ -13,6 +13,7 @@ public class TokenController {
     @PostMapping("/api/authentification")
     public void authentification(@Session Map<String, Object> session, String token) {
         TokenHandler tokenHandler = new TokenHandler(token);
-        session.put("token", tokenHandler.getToken());
+        System.out.println("Token reçu : " + token);
+        session.put("token", tokenHandler);
     }
 }
