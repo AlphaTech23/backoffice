@@ -1,0 +1,91 @@
+TL : ETU003309
+DEV : ETU003301, ETU003340
+
+features 1 :
+UPDATE SCRIPT SQL
+    Ajout de nouvelles tables
+        - Création table parametre
+        - Création table distance
+        - Création table trajet
+    Modification des tables
+        - Ajout colonne code dans hotel
+        - Ajout colonne code dans typeCarburant
+        - Ajout colonne id_trajet dans reservation
+        - Ajout colonne ordre dans reservation
+    Création vue v_trajet
+    Insertion de données de test
+
+features 2 :
+CREATE MODELS
+    Ajout de nouvelles entités
+        - Distance
+            Integer id
+            Hotel fromHotel
+            Hotel toHotel
+            Double kilometre
+        - Trajet 
+            Integer id 
+            LocalDate dateTrajet
+            LocalTime heureDepart
+            LocalTime heureRetour
+            Vehicule vehicule 
+            Double distance
+        - Parametre 
+            Integer id
+            String cle 
+            String valeur
+            String type
+    Modification des entités
+        - Ajout de String code dans Hotel
+        - Ajout de String code dans TypeCarburant
+        - Ajout de Integer id_trajet dans Reservation
+        - Ajout de Integer ordre dans Reservation
+
+features 3:
+ASSIGNATION HANDLER
+    Création fonction dans repository
+        HotelRepository
+            - Hotel getAeroport()
+        VehiculeRepository
+            - List<Vehicule> getByCapacite(int capacite, LocalDateTime date)
+        DistanceRepository
+            - Integer getBetween(Hotel h1, Hotel h2)
+        TrajetRepository
+            - List<Trajet> getByVehicule(Integer id, LocalDateTime date) 
+            - void save(Trajet trajet)
+        ReservationRepository
+            - List<Reservation> getByTrajet(Integer id, boolean alphabetique)
+            - Modification de la fonction save 
+            - Modification de la fonction getAll
+        ParametreRepository
+            - Double getVitesseMoyenne()
+    Création des services
+        VehiculeService
+            - Vehicule getDisponible(Reservation reservation)
+        TrajetService
+            - void getDistance(Trajet trajet) 
+            - LocalTime getDuree(trajet) 
+            - Trajet creerTrajet(Reservation reservation) 
+        ReservationService
+            - void assigner(Reservation reservation)
+            - void assignation() 
+    Création controller 
+        TrajetController  
+            - ModelView planification() 
+            - ModelView assignation() 
+    Création des pages avec intégration
+        - Création page trajet/planification.jsp 
+
+features 4:
+LIST ASSIGNATION
+    Ajout dans le repository
+        TrajetRepository
+            - List<Trajet> getByDate(LocalDate date) 
+            - List<Trajet> getNonAssigne(LocalDate date) 
+    Ajout dans le controller
+        TrajetController
+            - ModelView liste(LocalDate date) 
+            - ModelView getNonAssigne(LocalDate date) 
+
+    - Création page trajet/liste.jsp
+    - Création page vehicule/liste-non-assigne.jsp avec filtre date
