@@ -12,5 +12,3 @@ ALTER TABLE reservation ADD CONSTRAINT reservation_id_trajet_fkey
 FOREIGN KEY(id_trajet) REFERENCES trajet(id);
 
 ALTER TABLE reservation ADD COLUMN ordre INTEGER;
-
-ALTER TABLE reservation ALTER COLUMN ordre SET NOT NULL;
