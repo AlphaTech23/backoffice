@@ -14,12 +14,12 @@ public class TrajetController {
         this.reservationService = new ReservationService();
     }
     
-    @GetMapping("trajet/planifier")
+    @GetMapping("/trajets/planifier")
     public ModelView planification() {
         return new ModelView("/trajet/planification.jsp");
     }
 
-    @GetMapping("/trajet/assignation")
+    @GetMapping("/trajets/assigner")
     public ModelView assignation() {
         ModelView m = new ModelView("/trajet/planification.jsp");
         try {
