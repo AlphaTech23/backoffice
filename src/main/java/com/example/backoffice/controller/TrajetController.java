@@ -21,13 +21,12 @@ public class TrajetController {
 
     @GetMapping("/trajet/assignation")
     public ModelView assignation() {
+        ModelView m = new ModelView("/trajet/planification.jsp");
         try {
             reservationService.assignation();
         } catch (Exception e) {
-            e.printStackTrace(); // ou loger l'erreur
+            m.addAttribute("erreur", e.getMessage());
         }
-
-        // rediriger vers la page de planification après assignation
-        return new ModelView("/trajet/planification.jsp");
+        return m;
     }
 }
