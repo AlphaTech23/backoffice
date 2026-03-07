@@ -7,7 +7,6 @@ import java.util.List;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-
 import java.time.LocalDateTime;
 
 public class ReservationService {
@@ -19,9 +18,9 @@ public class ReservationService {
     }
 
     public Reservation reserver(String idClient,
-                                Integer nombrePassager,
-                                LocalDateTime dateArrive,
-                                Integer idHotel) throws Exception {
+            Integer nombrePassager,
+            LocalDateTime dateArrive,
+            Integer idHotel) throws Exception {
 
         Hotel hotel = new Hotel();
         hotel.setId(idHotel);
@@ -45,7 +44,11 @@ public class ReservationService {
         // Expected format yyyy-MM-dd
         LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         LocalDateTime startOfDay = date.atStartOfDay();
-        
+
         return reservationRepository.getByDateArrive(startOfDay);
+    }
+
+    public List<Reservation> getNonAssigne(LocalDate date) throws Exception {
+        return reservationRepository.getNonAssigne(date);
     }
 }
