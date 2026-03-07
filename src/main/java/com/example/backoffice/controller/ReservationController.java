@@ -6,10 +6,12 @@ import com.example.framework.annotations.Controller;
 import com.example.framework.annotations.GetMapping;
 import com.example.framework.annotations.Json;
 import com.example.framework.annotations.PostMapping;
+import com.example.framework.annotations.RequestParam;
 import com.example.framework.core.ModelView;
 import com.example.backoffice.service.HotelService;
 import com.example.backoffice.model.Reservation;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -75,5 +77,20 @@ public class ReservationController {
     @Authorized
     public List<Reservation> getReservations(String date) throws Exception {
         return reservationService.getByDateArrive(date);
+    }
+
+    @GetMapping("/reservations/non-assigner")
+    public ModelView getNonAssigne(LocalDate date) {
+
+        ModelView mv = new ModelView("/reservation/unassigned-list.jsp");
+
+        try {
+            mv.addAttribute("reservations", reservationService.getNonAssigne(date));
+            mv.addAttribute("date", date);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return mv;
     }
 }
