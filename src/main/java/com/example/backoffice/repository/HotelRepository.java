@@ -11,4 +11,9 @@ public class HotelRepository {
         String sql = "SELECT id, nom FROM hotel ORDER BY id";
         return DAO.getList(sql, Hotel.class);
     }
+
+    public Hotel getAeroport() throws Exception {
+        String sql = "SELECT * FROM hotel WHERE code = ?";
+        return DAO.get(sql, Hotel.class, "IVAT");
+    }
 }
