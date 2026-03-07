@@ -4,12 +4,14 @@ public class TypeCarburant {
 
     private Integer id;
     private String libelle;
+    private String code;
 
     public TypeCarburant() {
     }
 
-    public TypeCarburant(Integer id, String libelle) {
+    public TypeCarburant(Integer id, String code, String libelle) {
         this.id = id;
+        this.code = code;
         this.libelle = libelle;
     }
 
@@ -19,6 +21,14 @@ public class TypeCarburant {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getLibelle() {
