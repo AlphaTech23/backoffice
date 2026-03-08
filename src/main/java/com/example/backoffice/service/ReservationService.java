@@ -54,6 +54,10 @@ public class ReservationService {
         return reservationRepository.getByDateArrive(startOfDay);
     }
 
+    public List<Reservation> getNonAssigne(LocalDate date) throws Exception {
+        return reservationRepository.getNonAssigne(date);
+    }
+  
     public void assigner(Reservation reservation) throws Exception {
 
         // créer ou récupérer un trajet pour cette réservation

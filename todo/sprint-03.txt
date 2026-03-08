@@ -88,4 +88,4 @@ LIST ASSIGNATION
             - ModelView getNonAssigne(LocalDate date) 
 
     - Création page trajet/liste.jsp
-    - Création page vehicule/liste-non-assigne.jsp avec filtre date
+    - Création page reservation/liste-non-assigne.jsp avec filtre date

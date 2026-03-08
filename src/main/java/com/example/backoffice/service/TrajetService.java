@@ -1,5 +1,8 @@
 package com.example.backoffice.service;
 
+import com.example.backoffice.TrajetRepository;
+
+import java.time.LocalDate;
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
 import com.example.backoffice.model.Hotel;
@@ -29,6 +32,10 @@ public class TrajetService {
         this.parametreRepository = new ParametreRepository();
         this.trajetRepository = new TrajetRepository();
         this.vehiculeService = new VehiculeService();
+    }
+  
+    public List<Trajet> getByDate(LocalDate date) throws Exception {
+        return trajetRepository.getByDate(date);
     }
 
     public double getDistance(Trajet trajet) throws Exception {
