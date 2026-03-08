@@ -38,7 +38,7 @@ CREATE MODELS
     Modification des entités
         - Ajout de String code dans Hotel
         - Ajout de String code dans TypeCarburant
-        - Ajout de Integer id_trajet dans Reservation
+        - Ajout de Trajet trajet dans Reservation
         - Ajout de Integer ordre dans Reservation
 
 features 3:
