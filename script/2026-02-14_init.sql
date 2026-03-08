@@ -1,3 +1,4 @@
+\c postgres
 -- Supprimer la base si elle existe
 DROP DATABASE IF EXISTS "AeroAssign";
 
