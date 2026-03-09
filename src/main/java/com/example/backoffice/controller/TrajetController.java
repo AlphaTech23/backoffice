@@ -1,8 +1,12 @@
 package com.example.backoffice.controller;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.example.backoffice.service.TrajetService;
+import com.example.backoffice.dto.TrajetDTO;
+import com.example.backoffice.model.Trajet;
 import com.example.backoffice.service.ReservationService;
 import com.example.framework.annotations.Controller;
 import com.example.framework.annotations.GetMapping;
@@ -20,12 +24,18 @@ public class TrajetController {
     }
 
     @GetMapping("/trajets")
-    public ModelView liste(LocalDate date) {
+    public ModelView liste(LocalDate date) throws Exception {
 
         ModelView mv = new ModelView("/trajet/list.jsp");
-
+        List<Trajet> trajets = trajetService.getByDate(date);
+        List<TrajetDTO> trajetDTOs = new ArrayList<>();
+        for (Trajet trajet : trajets) {
+            TrajetDTO trajetDTO = new TrajetDTO(trajet);
+            trajetDTO.setReservations(reservationService.getByTrajet(trajet.getId()));
+            trajetDTOs.add(trajetDTO);
+        }
         try {
-            mv.addAttribute("trajets", trajetService.getByDate(date));
+            mv.addAttribute("trajets", trajetDTOs);
             mv.addAttribute("date", date);
         } catch (Exception e) {
             e.printStackTrace();

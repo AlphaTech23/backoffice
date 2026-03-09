@@ -2,6 +2,7 @@ package com.example.backoffice.dao;
 
 import java.lang.reflect.*;
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -21,6 +22,34 @@ public class DAO {
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    private static String sqlToJava(String columnName) {
+        StringBuilder sb = new StringBuilder();
+        boolean upperNext = false;
+        for (char c : columnName.toCharArray()) {
+            if (c == '_') {
+                upperNext = true;
+            } else {
+                sb.append(upperNext ? Character.toUpperCase(c) : Character.toLowerCase(c));
+                upperNext = false;
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String javaToSql(String fieldName) {
+        StringBuilder sb = new StringBuilder();
+        int i = 1;
+        for (char c : fieldName.toCharArray()) {
+            if (i != 1 && Character.isUpperCase(c)) {
+                sb.append('_').append(Character.toLowerCase(c));
+            } else {
+                sb.append(c);
+            }
+            i++;
+        }
+        return sb.toString();
     }
 
     public static int executeUpdate(String sql, Object... params) throws SQLException {
@@ -49,7 +78,17 @@ public class DAO {
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             for (int i = 0; i < params.length; i++) {
-                stmt.setObject(i + 1, params[i]);
+                Object param = params[i];
+
+                if (param instanceof java.time.LocalDate) {
+                    stmt.setDate(i + 1, Date.valueOf((java.time.LocalDate) param));
+                } else if (param instanceof java.time.LocalTime) {
+                    stmt.setTime(i + 1, Time.valueOf((java.time.LocalTime) param));
+                } else if (param instanceof java.time.LocalDateTime) {
+                    stmt.setTimestamp(i + 1, Timestamp.valueOf((java.time.LocalDateTime) param));
+                } else {
+                    stmt.setObject(i + 1, param);
+                }
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -82,7 +121,7 @@ public class DAO {
     }
 
     private static void mapField(Object obj, String columnName, Object value) throws Exception {
-        String fieldName = toCamelCase(columnName);
+        String fieldName = sqlToJava(columnName);
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
@@ -110,20 +149,6 @@ public class DAO {
                 || clazz == java.util.Date.class;
     }
 
-    private static String toCamelCase(String snake) {
-        StringBuilder sb = new StringBuilder();
-        boolean upperNext = false;
-        for (char c : snake.toCharArray()) {
-            if (c == '_') {
-                upperNext = true;
-            } else {
-                sb.append(upperNext ? Character.toUpperCase(c) : Character.toLowerCase(c));
-                upperNext = false;
-            }
-        }
-        return sb.toString();
-    }
-
     private static void mapNestedObjectsLazy(Object parent, ResultSet rs) throws Exception {
         for (Field field : parent.getClass().getDeclaredFields()) {
             field.setAccessible(true);
@@ -131,8 +156,9 @@ public class DAO {
             if (isSimpleType(type))
                 continue;
 
-            String table = type.getSimpleName().toLowerCase();
+            String table = javaToSql(type.getSimpleName());
             String idColumn = "id_" + table;
+            
             Object idValue;
             try {
                 idValue = rs.getObject(idColumn);
