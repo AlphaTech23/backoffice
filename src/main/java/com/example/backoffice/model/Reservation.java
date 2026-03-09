@@ -7,7 +7,7 @@ public class Reservation {
     private Integer id;
     private String idClient;
     private Integer nombrePassager;
-    private LocalDateTime dateArrive;
+    private LocalDateTime dateArrivee;
     private Hotel hotel;
     private Trajet trajet;
     private Integer ordre;
@@ -15,11 +15,11 @@ public class Reservation {
     public Reservation() {
     }
 
-    public Reservation(Integer id, String idClient, Integer nombrePassager, LocalDateTime dateArrive, Hotel hotel, Trajet trajet, Integer ordre) {
+    public Reservation(Integer id, String idClient, Integer nombrePassager, LocalDateTime dateArrivee, Hotel hotel, Trajet trajet, Integer ordre) {
         this.id = id;
         this.idClient = idClient;
         this.nombrePassager = nombrePassager;
-        this.dateArrive = dateArrive;
+        this.dateArrivee = dateArrivee;
         this.hotel = hotel;
         this.trajet = trajet;
         this.ordre = ordre;
@@ -49,12 +49,12 @@ public class Reservation {
         this.nombrePassager = nombrePassager;
     }
 
-    public LocalDateTime getDateArrive() {
-        return dateArrive;
+    public LocalDateTime getDateArrivee() {
+        return dateArrivee;
     }
 
-    public void setDateArrive(LocalDateTime dateArrive) {
-        this.dateArrive = dateArrive;
+    public void setDateArrivee(LocalDateTime dateArrivee) {
+        this.dateArrivee = dateArrivee;
     }
 
     public Hotel getHotel() {

@@ -42,7 +42,7 @@ if(reservations != null){
     <td><%=r.getId()%></td>
     <td><%=r.getIdClient()%></td>
     <td><%=r.getNombrePassager()%></td>
-    <td><%=r.getDateArrive()%></td>
+    <td><%=r.getDateArrivee()%></td>
     <td><%=r.getHotel() != null ? r.getHotel().getLibelle() : ""%></td>
 </tr>
 

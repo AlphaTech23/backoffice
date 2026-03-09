@@ -39,24 +39,28 @@ public class VehiculeService {
     }
 
     public Vehicule getDisponible(Reservation reservation) throws Exception {
-
         // récupérer tous les véhicules capables de transporter les passagers à cette date
         List<Vehicule> vehicules = vehiculeRepository.getByCapacite(
-                reservation.getNombrePassager(),
-                reservation.getDateArrive()
+            reservation.getNombrePassager()
         );
-
         if (vehicules == null || vehicules.isEmpty()) {
-            return null; // aucun véhicule disponible
+            return null;
         }
+        
+        Vehicule disponible = null;
+        int min = Integer.MAX_VALUE;
 
         // prioriser les véhicules avec carburant type 'D'
         for (Vehicule v : vehicules) {
-            if ("D".equalsIgnoreCase(v.getTypeCarburant().getCode())) {
-                return v;
+            if(min > v.getCapacite()) {
+                min = v.getCapacite();
+                disponible = v;
+            } else if (min == v.getCapacite() && "D".equalsIgnoreCase(v.getTypeCarburant().getCode())) {
+                disponible = v;
             }
         }
 
+        if(disponible != null) return disponible;
         // sinon, renvoyer un véhicule aléatoire parmi les disponibles
         Random random = new Random();
         return vehicules.get(random.nextInt(vehicules.size()));

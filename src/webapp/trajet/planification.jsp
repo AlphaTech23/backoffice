@@ -6,7 +6,7 @@
 <body>
 <h2>Planification des trajets</h2>
 
-<form action="assignation" method="get">
+<form action="assigner" method="post">
     <button type="submit">Lancer l’assignation automatique</button>
 </form>
 

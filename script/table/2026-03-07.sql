@@ -9,7 +9,7 @@ CREATE TABLE parametre(
 
 CREATE TABLE distance(
    id SERIAL,
-   kilometre VARCHAR(50)  NOT NULL,
+   kilometre NUMERIC(15,2) NOT NULL,
    id_from_hotel INTEGER NOT NULL,
    id_to_hotel INTEGER NOT NULL,
    PRIMARY KEY(id),
@@ -21,7 +21,7 @@ CREATE TABLE trajet(
    id SERIAL,
    date_trajet DATE NOT NULL,
    heure_depart TIME NOT NULL,
-   heure_retour TIME NOT NULL,
+   heure_retour TIME,
    id_vehicule INTEGER NOT NULL,
    distance NUMERIC(15, 2) NOT NULL,
    PRIMARY KEY(id),
