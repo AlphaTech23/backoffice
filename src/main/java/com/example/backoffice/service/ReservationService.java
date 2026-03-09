@@ -60,6 +60,10 @@ public class ReservationService {
         return reservationRepository.getNonAssigne(date);
     }
 
+    public List<Reservation> getByTrajet(Integer id) throws Exception {
+        return reservationRepository.getByTrajet(id, false);
+    }
+
     public void assigner(Reservation reservation) throws Exception {
         // créer ou récupérer un trajet pour cette réservation
         Trajet trajet = trajetService.creerTrajet(reservation);
