@@ -6,6 +6,7 @@ import com.example.backoffice.service.TrajetService;
 import com.example.backoffice.service.ReservationService;
 import com.example.framework.annotations.Controller;
 import com.example.framework.annotations.GetMapping;
+import com.example.framework.annotations.PostMapping;
 import com.example.framework.core.ModelView;
 
 @Controller
@@ -39,7 +40,7 @@ public class TrajetController {
         return new ModelView("/trajet/planification.jsp");
     }
 
-    @GetMapping("/trajets/assigner")
+    @PostMapping("/trajets/assigner")
     public ModelView assignation() {
         ModelView m = new ModelView("/trajet/planification.jsp");
         try {

@@ -2,13 +2,15 @@ package com.example.backoffice.repository;
 
 import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Trajet;
-import com.example.backoffice.model.Vehicule;
 
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.Statement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TrajetRepository {
@@ -75,12 +77,26 @@ public class TrajetRepository {
                         VALUES (?, ?, ?, ?, ?)
                     """;
 
-            DAO.executeUpdate(sql,
-                    Date.valueOf(trajet.getDateTrajet()),
-                    Time.valueOf(trajet.getHeureDepart()),
-                    Time.valueOf(trajet.getHeureRetour()),
-                    trajet.getVehicule().getId(),
-                    trajet.getDistance());
+            try (Connection conn = DAO.getConnection()) {
+
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+                ps.setDate(1, trajet.getDateTrajet() != null ? Date.valueOf(trajet.getDateTrajet()) : null);
+                ps.setTime(2, trajet.getHeureDepart() != null ? Time.valueOf(trajet.getHeureDepart()) : null);
+                ps.setTime(3, trajet.getHeureRetour() != null ? Time.valueOf(trajet.getHeureRetour()) : null);
+                ps.setInt(4, trajet.getVehicule().getId());
+                ps.setDouble(5, trajet.getDistance() != null ? trajet.getDistance() : 0);
+
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    trajet.setId(rs.getInt(1)); // <-- on met l'id généré dans l'objet
+                }
+
+                rs.close();
+                ps.close();
+            }
         }
     }
 }
