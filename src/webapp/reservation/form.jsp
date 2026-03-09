@@ -179,7 +179,7 @@
                                     <i class="fas fa-calendar text-gray-400"></i>
                                 </div>
                                 <input type="date" 
-                                       id="dateArrive"
+                                       id="dateArrivee"
                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                                        required>
                             </div>
@@ -194,7 +194,7 @@
                             </div>
                         </div>
                         <!-- Champ caché pour la combinaison date+time -->
-                        <input type="hidden" name="dateArrive" id="dateArriveCombined">
+                        <input type="hidden" name="dateArrivee" id="dateArriveeCombined">
                     </div>
 
                     <!-- Sélection hôtel avec design moderne -->
@@ -289,9 +289,9 @@
     <script>
         // Configuration de la date minimum (aujourd'hui)
         document.addEventListener('DOMContentLoaded', function() {
-            const dateInput = document.getElementById('dateArrive');
+            const dateInput = document.getElementById('dateArrivee');
             const timeInput = document.getElementById('timeArrive');
-            const hiddenInput = document.getElementById('dateArriveCombined');
+            const hiddenInput = document.getElementById('dateArriveeCombined');
             
             // Set minimum date to today
             const today = new Date();

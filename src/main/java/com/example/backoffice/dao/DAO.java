@@ -65,6 +65,28 @@ public class DAO {
     }
 
     public static <T> T get(String sql, Class<T> clazz, Object... params) throws Exception {
+        if (isSimpleType(clazz)) {
+            try (Connection conn = getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                for (int i = 0; i < params.length; i++) {
+                    stmt.setObject(i + 1, params[i]);
+                }
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        Object value = rs.getObject(1);
+
+                        if (value instanceof java.math.BigDecimal && clazz.equals(Double.class)) {
+                            return clazz.cast(((java.math.BigDecimal) value).doubleValue());
+                        }
+
+                        return clazz.cast(value);
+                    }
+                }
+            }
+            return null;
+        }
         List<T> list = getList(sql, clazz, params);
         if (list.isEmpty())
             return null;
@@ -135,6 +157,12 @@ public class DAO {
             return;
         if (value instanceof Timestamp && field.getType().equals(LocalDateTime.class)) {
             field.set(obj, ((Timestamp) value).toLocalDateTime());
+        } else if (value instanceof java.math.BigDecimal && field.getType().equals(Double.class)) {
+            field.set(obj, ((java.math.BigDecimal) value).doubleValue());
+
+        } else if (value instanceof java.math.BigDecimal && field.getType().equals(Integer.class)) {
+            field.set(obj, ((java.math.BigDecimal) value).intValue());
+
         } else {
             field.set(obj, value);
         }

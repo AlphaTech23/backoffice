@@ -6,7 +6,6 @@ import com.example.framework.annotations.Controller;
 import com.example.framework.annotations.GetMapping;
 import com.example.framework.annotations.Json;
 import com.example.framework.annotations.PostMapping;
-import com.example.framework.annotations.RequestParam;
 import com.example.framework.core.ModelView;
 import com.example.backoffice.service.HotelService;
 import com.example.backoffice.model.Reservation;
@@ -44,7 +43,7 @@ public class ReservationController {
     @PostMapping("/reservation/reserver")
     public ModelView reserver(String idClient,
             Integer nombrePassager,
-            String dateArrive,
+            String dateArrivee,
             Integer idHotel) {
 
         ModelView mv = new ModelView("/reservation/form.jsp");
@@ -53,7 +52,7 @@ public class ReservationController {
             reservationService.reserver(
                     idClient,
                     nombrePassager,
-                    LocalDateTime.parse(dateArrive),
+                    LocalDateTime.parse(dateArrivee),
                     idHotel);
 
             mv.addAttribute("message", "Réservation effectuée avec succès");
@@ -76,7 +75,7 @@ public class ReservationController {
     @Json
     @Authorized
     public List<Reservation> getReservations(String date) throws Exception {
-        return reservationService.getByDateArrive(date);
+        return reservationService.getByDateArrivee(date);
     }
 
     @GetMapping("/reservations/non-assigner")
