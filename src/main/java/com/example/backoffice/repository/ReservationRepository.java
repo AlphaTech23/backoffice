@@ -95,11 +95,26 @@ public class ReservationRepository {
                 """;
 
         if (alphabetique) {
-            sql += " ORDER BY h.libelle ASC";
+            sql += " ORDER BY h.nom ASC";
         } else {
             sql += " ORDER BY r.ordre ASC";
         }
 
         return DAO.getList(sql, Reservation.class, trajetId);
+    }
+
+    public void updateOrdre(List<Reservation> reservations) throws Exception {
+
+        String sql = """
+                UPDATE reservation
+                SET ordre = ?
+                WHERE id = ?
+                """;
+
+        for (Reservation r : reservations) {
+            DAO.executeUpdate(sql,
+                    r.getOrdre(),
+                    r.getId());
+        }
     }
 }
