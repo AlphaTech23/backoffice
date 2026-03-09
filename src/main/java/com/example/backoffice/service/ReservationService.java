@@ -66,7 +66,7 @@ public class ReservationService {
 
     public void assigner(Reservation reservation) throws Exception {
         // créer ou récupérer un trajet pour cette réservation
-        Trajet trajet = trajetService.creerTrajet(reservation);
+        Trajet trajet = trajetService.trouverTrajet(reservation);
         
         if (trajet != null) {
             try {
@@ -74,8 +74,6 @@ public class ReservationService {
             double distance = trajetService.getDistance(trajet);
             LocalTime duree = trajetService.getDuree(distance);
             trajet.setDistance(distance);
-
-            System.out.println(distance);
 
             // calculer l'heure d'arrivée en ajoutant la durée estimée
             LocalTime heureArrivee = trajet.getHeureDepart().plusHours(duree.getHour())
