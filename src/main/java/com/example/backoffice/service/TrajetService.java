@@ -14,6 +14,7 @@ import com.example.backoffice.repository.HotelRepository;
 import com.example.backoffice.repository.ParametreRepository;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TrajetService {
@@ -100,9 +101,9 @@ public class TrajetService {
         // créer le trajet et assigner le véhicule
         Trajet trajet = new Trajet();
         trajet.setVehicule(vehicule);
-        LocalDateTime dateArriveee = reservation.getDateArrivee();
-        trajet.setDateTrajet(dateArriveee.toLocalDate());
-        trajet.setHeureDepart(dateArriveee.toLocalTime());
+        LocalDateTime dateArrivee = reservation.getDateArrivee();
+        trajet.setDateTrajet(dateArrivee.toLocalDate());
+        trajet.setHeureDepart(dateArrivee.toLocalTime());
 
         trajetRepository.save(trajet);
 
@@ -114,5 +115,101 @@ public class TrajetService {
         reservationRepository.save(reservation);
 
         return trajet;
+    }
+
+    public Trajet getDisponible(Reservation reservation) throws Exception {
+
+        List<Trajet> trajets = trajetRepository.getByCapacite(
+                reservation.getNombrePassager(),
+                reservation.getDateArrivee());
+
+        Trajet disponible = null;
+        int min = Integer.MAX_VALUE;
+
+        // priorité aux véhicules diesel
+        for (Trajet trajet : trajets) {
+            if(min < trajet.getVehicule().getCapacite()) break;
+            if(min > trajet.getVehicule().getCapacite()) {
+                disponible = trajet;
+                min = trajet.getVehicule().getCapacite();
+            }
+            else if (min == trajet.getVehicule().getCapacite() && trajet.getVehicule().getTypeCarburant().equals("D")) {
+                disponible = trajet;
+            }
+        }
+
+        // sinon choisir un trajet aléatoire
+        if (trajets != null && !trajets.isEmpty() && disponible == null) {
+            int random = (int) (Math.random() * trajets.size());
+            disponible = trajets.get(random);
+        }
+
+        reservation.setTrajet(disponible);
+        reservationRepository.save(reservation);
+
+        return disponible;
+    }
+
+    public void ordonnerTrajet(Trajet trajet) throws Exception {
+
+        List<Reservation> reservations = reservationRepository.getByTrajet(trajet.getId(), true);
+
+        if (reservations == null || reservations.isEmpty()) {
+            return;
+        }
+
+        List<Integer> nonTriees = new ArrayList<>();
+        for (int i = 0; i < reservations.size(); i++) {
+            nonTriees.add(i);
+        }
+
+        Hotel lieuActuel = hotelRepository.getAeroport();
+
+        for (int tri = 1; tri <= reservations.size(); tri++) {
+
+            double min = Double.MAX_VALUE;
+            int indice = -1;
+
+            for (Integer i : nonTriees) {
+
+                double distance = distanceRepository.getBetween(
+                        lieuActuel,
+                        reservations.get(i).getHotel());
+
+                if (distance < min) {
+                    min = distance;
+                    indice = i;
+                }
+            }
+
+            if (indice != -1) {
+
+                nonTriees.remove(Integer.valueOf(indice));
+
+                Reservation r = reservations.get(indice);
+                r.setOrdre(tri);
+
+                lieuActuel = r.getHotel();
+            }
+        }
+
+        reservationRepository.updateOrdre(reservations);
+    }
+
+    public Trajet trouverTrajet(Reservation reservation) throws Exception {
+        try {
+            Trajet trajet = getDisponible(reservation);
+            if (trajet == null) {
+                return creerTrajet(reservation);
+            }
+            
+            ordonnerTrajet(trajet);
+            
+            return trajet;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException(e);
+        }
     }
 }
