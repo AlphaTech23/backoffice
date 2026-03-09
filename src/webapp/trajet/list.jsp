@@ -296,7 +296,7 @@
                                     <table class="min-w-full text-sm" style="margin-left: 8%;">
                                         <thead>
                                             <tr class="text-xs text-gray-500 uppercase">
-                                                <th class="px-2 py-1 text-left">ID</th>
+                                                <th class="px-2 py-1 text-left">ORDRE</th>
                                                 <th class="px-2 py-1 text-left">Client</th>
                                                 <th class="px-2 py-1 text-left">Passagers</th>
                                                 <th class="px-2 py-1 text-left">Hôtel</th>
@@ -305,7 +305,7 @@
                                         <tbody class="divide-y divide-gray-200">
                                             <% for(Reservation r : resList){ %>
                                                 <tr>
-                                                    <td class="px-2 py-2 font-mono text-xs">#<%= r.getId() %></td>
+                                                    <td class="px-2 py-2 font-mono text-xs">#<%= r.getOrdre() %></td>
                                                     <td class="px-2 py-2">
                                                         <div class="flex items-center">
                                                             <i class="fas fa-user text-gray-400 mr-1 text-xs"></i>
