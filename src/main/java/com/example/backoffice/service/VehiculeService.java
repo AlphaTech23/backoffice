@@ -41,7 +41,8 @@ public class VehiculeService {
     public Vehicule getDisponible(Reservation reservation) throws Exception {
         // récupérer tous les véhicules capables de transporter les passagers à cette date
         List<Vehicule> vehicules = vehiculeRepository.getByCapacite(
-            reservation.getNombrePassager()
+            reservation.getNombrePassager(),
+            reservation.getDateArrivee()
         );
         if (vehicules == null || vehicules.isEmpty()) {
             return null;
@@ -52,6 +53,7 @@ public class VehiculeService {
 
         // prioriser les véhicules avec carburant type 'D'
         for (Vehicule v : vehicules) {
+            if(v.getCapacite() > min) break;
             if(min > v.getCapacite()) {
                 min = v.getCapacite();
                 disponible = v;

@@ -3,7 +3,9 @@ package com.example.backoffice.dao;
 import java.lang.reflect.*;
 import java.sql.*;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 public class DAO {
@@ -155,15 +157,28 @@ public class DAO {
     private static void assignValue(Object obj, Field field, Object value) throws IllegalAccessException {
         if (value == null)
             return;
+
         if (value instanceof Timestamp && field.getType().equals(LocalDateTime.class)) {
             field.set(obj, ((Timestamp) value).toLocalDateTime());
-        } else if (value instanceof java.math.BigDecimal && field.getType().equals(Double.class)) {
+        }
+
+        else if (value instanceof Date && field.getType().equals(LocalDate.class)) {
+            field.set(obj, ((Date) value).toLocalDate());
+        }
+
+        else if (value instanceof Time && field.getType().equals(LocalTime.class)) {
+            field.set(obj, ((Time) value).toLocalTime());
+        }
+
+        else if (value instanceof java.math.BigDecimal && field.getType().equals(Double.class)) {
             field.set(obj, ((java.math.BigDecimal) value).doubleValue());
+        }
 
-        } else if (value instanceof java.math.BigDecimal && field.getType().equals(Integer.class)) {
+        else if (value instanceof java.math.BigDecimal && field.getType().equals(Integer.class)) {
             field.set(obj, ((java.math.BigDecimal) value).intValue());
+        }
 
-        } else {
+        else {
             field.set(obj, value);
         }
     }
@@ -186,7 +201,7 @@ public class DAO {
 
             String table = javaToSql(type.getSimpleName());
             String idColumn = "id_" + table;
-            
+
             Object idValue;
             try {
                 idValue = rs.getObject(idColumn);

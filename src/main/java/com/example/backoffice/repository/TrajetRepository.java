@@ -99,4 +99,21 @@ public class TrajetRepository {
             }
         }
     }
+
+    public List<Trajet> getByCapacite(int capacite, LocalDateTime dateTime) throws Exception {
+
+        String sql = """
+                SELECT *
+                FROM v_trajet vt
+                WHERE vt.places_restantes >= ?
+                    AND vt.date_trajet = ?
+                ORDER BY places_restantes
+                """;
+
+        Date sqlDate = Date.valueOf(dateTime.toLocalDate());
+
+        return DAO.getList(sql, Trajet.class,
+                capacite,
+                sqlDate);
+    }
 }

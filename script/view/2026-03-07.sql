@@ -1,12 +1,12 @@
 CREATE OR REPLACE VIEW v_trajet AS
 SELECT
-    t.id AS trajet_id,
+    t.id AS id,
     t.date_trajet,
     t.heure_depart,
     t.heure_retour,
     t.distance,
 
-    v.id AS vehicule_id,
+    v.id AS id_vehicule,
     v.reference,
     v.capacite,
     v.id_type_carburant,

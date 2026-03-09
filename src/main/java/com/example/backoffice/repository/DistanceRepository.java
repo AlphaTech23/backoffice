@@ -15,7 +15,6 @@ public class DistanceRepository {
             OR (id_from_hotel = ? AND id_to_hotel = ?)
         """;
 
-        System.out.println(h1.getId() + " " + h2.getId());
         Distance km = DAO.get(sql, Distance.class,
                 h1.getId(), h2.getId(),
                 h2.getId(), h1.getId());

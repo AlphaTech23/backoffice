@@ -55,6 +55,7 @@ public class TrajetController {
         ModelView m = new ModelView("/trajet/planification.jsp");
         try {
             reservationService.assignation();
+            m.addAttribute("message", "Planification effecutee avec succes");
         } catch (Exception e) {
             m.addAttribute("erreur", e.getMessage());
         }
