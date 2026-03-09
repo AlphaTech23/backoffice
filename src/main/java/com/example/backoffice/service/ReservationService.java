@@ -27,7 +27,7 @@ public class ReservationService {
 
     public Reservation reserver(String idClient,
             Integer nombrePassager,
-            LocalDateTime dateArrive,
+            LocalDateTime dateArrivee,
             Integer idHotel) throws Exception {
 
         Hotel hotel = new Hotel();
@@ -36,7 +36,7 @@ public class ReservationService {
         Reservation reservation = new Reservation();
         reservation.setIdClient(idClient);
         reservation.setNombrePassager(nombrePassager);
-        reservation.setDateArrive(dateArrive);
+        reservation.setDateArrivee(dateArrivee);
         reservation.setHotel(hotel);
 
         reservationRepository.save(reservation);
@@ -44,7 +44,7 @@ public class ReservationService {
         return reservation;
     }
 
-    public List<Reservation> getByDateArrive(String dateStr) throws Exception {
+    public List<Reservation> getByDateArrivee(String dateStr) throws Exception {
         if (dateStr == null || dateStr.trim().isEmpty()) {
             return reservationRepository.getAll();
         }
@@ -53,7 +53,7 @@ public class ReservationService {
         LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         LocalDateTime startOfDay = date.atStartOfDay();
 
-        return reservationRepository.getByDateArrive(startOfDay);
+        return reservationRepository.getByDateArrivee(startOfDay);
     }
 
     public List<Reservation> getNonAssigne(LocalDate date) throws Exception {
@@ -61,7 +61,6 @@ public class ReservationService {
     }
 
     public void assigner(Reservation reservation) throws Exception {
-
         // créer ou récupérer un trajet pour cette réservation
         Trajet trajet = trajetService.creerTrajet(reservation);
 
@@ -80,7 +79,6 @@ public class ReservationService {
     }
 
     public void assignation() throws Exception {
-
         // récupérer toutes les réservations non encore assignées
         List<Reservation> reservations = reservationRepository.getAll();
 

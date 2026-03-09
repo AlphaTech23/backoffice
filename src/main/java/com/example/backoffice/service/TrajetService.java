@@ -1,15 +1,15 @@
 package com.example.backoffice.service;
 
-import com.example.backoffice.TrajetRepository;
-
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Vehicule;
+import com.example.backoffice.repository.TrajetRepository;
 import com.example.backoffice.repository.DistanceRepository;
 import com.example.backoffice.repository.ReservationRepository;
-import com.example.backoffice.repository.TrajetRepository;
 import com.example.backoffice.repository.HotelRepository;
 import com.example.backoffice.repository.ParametreRepository;
 
@@ -33,7 +33,7 @@ public class TrajetService {
         this.trajetRepository = new TrajetRepository();
         this.vehiculeService = new VehiculeService();
     }
-  
+
     public List<Trajet> getByDate(LocalDate date) throws Exception {
         return trajetRepository.getByDate(date);
     }
@@ -69,10 +69,7 @@ public class TrajetService {
         return distance;
     }
 
-    public LocalTime getDuree(Trajet trajet) throws Exception {
-
-        // distance totale en km
-        double distance = trajetRepository.getDistance(trajet);
+    public LocalTime getDuree(double distance) throws Exception {
 
         // vitesse moyenne en km/h
         double vitesse = parametreRepository.getVitesseMoyenne();
@@ -92,7 +89,6 @@ public class TrajetService {
     }
 
     public Trajet creerTrajet(Reservation reservation) throws Exception {
-
         // récupérer un véhicule disponible
         Vehicule vehicule = vehiculeService.getDisponible(reservation);
 
@@ -104,9 +100,14 @@ public class TrajetService {
         // créer le trajet et assigner le véhicule
         Trajet trajet = new Trajet();
         trajet.setVehicule(vehicule);
+        LocalDateTime dateArriveee = reservation.getDateArrivee();
+        trajet.setDateTrajet(dateArriveee.toLocalDate());
+        trajet.setHeureDepart(dateArriveee.toLocalTime());
+
+        trajetRepository.save(trajet);
 
         // assigner ordre = 1 à la réservation
-        reservation.setOrdre("1");
+        reservation.setOrdre(1);
         reservation.setTrajet(trajet);
 
         // sauvegarder la réservation avec le trajet associé

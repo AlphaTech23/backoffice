@@ -29,7 +29,7 @@ public class ReservationRepository {
                     sql,
                     reservation.getIdClient(),
                     reservation.getNombrePassager(),
-                    Timestamp.valueOf(reservation.getDateArrive()),
+                    Timestamp.valueOf(reservation.getDateArrivee()),
                     reservation.getHotel().getId(),
                     reservation.getOrdre(),
                     reservation.getTrajet() != null ? reservation.getTrajet().getId() : null,
@@ -46,7 +46,7 @@ public class ReservationRepository {
                     sql,
                     reservation.getIdClient(),
                     reservation.getNombrePassager(),
-                    Timestamp.valueOf(reservation.getDateArrive()),
+                    Timestamp.valueOf(reservation.getDateArrivee()),
                     reservation.getHotel().getId(),
                     reservation.getOrdre(),
                     reservation.getTrajet() != null ? reservation.getTrajet().getId() : null);
@@ -64,9 +64,9 @@ public class ReservationRepository {
         return DAO.getList(sql, Reservation.class);
     }
 
-    public List<Reservation> getByDateArrive(LocalDateTime dateArrive) throws Exception {
+    public List<Reservation> getByDateArrivee(LocalDateTime dateArrivee) throws Exception {
         return DAO.getList("SELECT * FROM reservation WHERE date(date_arrive) = date(?)", Reservation.class,
-                Timestamp.valueOf(dateArrive));
+                Timestamp.valueOf(dateArrivee));
     }
 
     public List<Reservation> getNonAssigne(LocalDate date) throws Exception {
