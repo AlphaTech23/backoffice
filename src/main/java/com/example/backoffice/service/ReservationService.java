@@ -63,27 +63,19 @@ public class ReservationService {
     public void assigner(Reservation reservation) throws Exception {
         // créer ou récupérer un trajet pour cette réservation
         Trajet trajet = trajetService.creerTrajet(reservation);
-        
-        if (trajet != null) {
-            try {
-            // distance totale en km
-            double distance = trajetService.getDistance(trajet);
-            LocalTime duree = trajetService.getDuree(distance);
-            trajet.setDistance(distance);
 
-            System.out.println(distance);
+        // calculer l'heure d'arrivée en ajoutant la durée estimée
+        LocalTime heureArrivee = trajet.getHeureDepart().plusHours(trajetService.getDuree(trajet).getHour())
+                .plusMinutes(trajetService.getDuree(trajet).getMinute());
+        trajet.setHeureRetour(heureArrivee);
 
-            // calculer l'heure d'arrivée en ajoutant la durée estimée
-            LocalTime heureArrivee = trajet.getHeureDepart().plusHours(duree.getHour())
-                    .plusMinutes(duree.getMinute());
-            trajet.setHeureRetour(heureArrivee);
+        // sauvegarder le trajet
+        trajetRepository.save(trajet);
+    }
 
-            // sauvegarder le trajet
-            trajetRepository.save(trajet);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    
+    public List<Reservation> getByTrajet(int idTrajet) throws Exception {
+        return reservationRepository.getByTrajet(idTrajet, false);
     }
 
     public void assignation() throws Exception {
@@ -96,7 +88,9 @@ public class ReservationService {
 
         // parcourir chaque réservation et l'assigner
         for (Reservation reservation : reservations) {
+            if(reservation.getTrajet() != null) continue;
             assigner(reservation);
+                
         }
     }
 }
