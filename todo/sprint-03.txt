@@ -1,7 +1,7 @@
 TL : ETU003309
 DEV : ETU003301, ETU003340
 
-features 1 :
+features 1 : ETU003301
 UPDATE SCRIPT SQL
     Ajout de nouvelles tables
         - Création table parametre
@@ -15,7 +15,7 @@ UPDATE SCRIPT SQL
     Création vue v_trajet
     Insertion de données de test
 
-features 2 :
+features 2 : ETU003301
 CREATE MODELS
     Ajout de nouvelles entités
         - Distance
@@ -41,7 +41,7 @@ CREATE MODELS
         - Ajout de Trajet trajet dans Reservation
         - Ajout de Integer ordre dans Reservation
 
-features 3:
+features 3: ETU003340
 ASSIGNATION HANDLER
     Création fonction dans repository
         HotelRepository
@@ -76,7 +76,7 @@ ASSIGNATION HANDLER
     Création des pages avec intégration
         - Création page trajet/planification.jsp 
 
-features 4:
+features 4: ETU003301
 LIST ASSIGNATION
     Ajout dans le repository
         TrajetRepository
