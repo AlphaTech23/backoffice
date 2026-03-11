@@ -132,11 +132,10 @@ public class DAO {
                     for (int i = 1; i <= colCount; i++) {
                         String colName = meta.getColumnLabel(i);
                         Object value = rs.getObject(i);
-
                         try {
                             mapField(obj, colName, value);
                         } catch (Exception e) {
-                            // Ignore mapping errors for missing fields
+                            System.out.println(e.getMessage());
                         }
                     }
 
@@ -150,13 +149,14 @@ public class DAO {
         return resultList;
     }
 
-    private void mapField(Object obj, String columnName, Object value) throws Exception {
+    private void  mapField(Object obj, String columnName, Object value) throws Exception {
         String fieldName = sqlToJava(columnName);
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             assignValue(obj, field, value);
         } catch (NoSuchFieldException ignored) {
+            System.out.println(ignored.getMessage());
         }
     }
 
@@ -166,6 +166,10 @@ public class DAO {
 
         if (value instanceof Timestamp && field.getType().equals(LocalDateTime.class)) {
             field.set(obj, ((Timestamp) value).toLocalDateTime());
+        }
+
+        else if (value instanceof Long && field.getType().equals(Integer.class)) {
+            field.set(obj, ((Long) value).intValue());
         }
 
         else if (value instanceof Date && field.getType().equals(LocalDate.class)) {
@@ -213,6 +217,7 @@ public class DAO {
             try {
                 idValue = rs.getObject(idColumn);
             } catch (SQLException e) {
+                System.out.println(e.getMessage());
                 continue;
             }
 

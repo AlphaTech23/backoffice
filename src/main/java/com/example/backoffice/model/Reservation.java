@@ -9,20 +9,16 @@ public class Reservation {
     private Integer nombrePassager;
     private LocalDateTime dateArrivee;
     private Hotel hotel;
-    private Trajet trajet;
-    private Integer ordre;
 
     public Reservation() {
     }
 
-    public Reservation(Integer id, String idClient, Integer nombrePassager, LocalDateTime dateArrivee, Hotel hotel, Trajet trajet, Integer ordre) {
+    public Reservation(Integer id, String idClient, Integer nombrePassager, LocalDateTime dateArrivee, Hotel hotel) {
         this.id = id;
         this.idClient = idClient;
         this.nombrePassager = nombrePassager;
         this.dateArrivee = dateArrivee;
         this.hotel = hotel;
-        this.trajet = trajet;
-        this.ordre = ordre;
     }
 
     public Integer getId() {
@@ -63,21 +59,5 @@ public class Reservation {
 
     public void setHotel(Hotel hotel) {
         this.hotel = hotel;
-    }
-
-    public Trajet getTrajet() {
-        return trajet;
-    }
-
-    public void setTrajet(Trajet trajet) {
-        this.trajet = trajet;
-    }
-
-    public Integer getOrdre() {
-        return ordre;
-    }
-
-    public void setOrdre(Integer ordre) {
-        this.ordre = ordre;
     }
 }

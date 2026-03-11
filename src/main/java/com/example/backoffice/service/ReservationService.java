@@ -10,6 +10,7 @@ import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -67,42 +68,34 @@ public class ReservationService {
         return reservationRepository.getNonAssigne(date);
     }
 
-    public List<Reservation> getByTrajet(Integer id) throws Exception {
-        return reservationRepository.getByTrajet(id, false);
-    }
-
-    public void assigner(Reservation reservation, Double vitesse, List<Distance> distances, Hotel aeroport) throws Exception {
-        Trajet trajet = trajetService.trouverTrajet(reservation, distances, aeroport);
-        
-        if (trajet != null) {
-            try {
-            double distance = trajetService.getDistance(trajet, distances, aeroport);
-            LocalTime duree = trajetService.getDuree(distance, vitesse);
-            trajet.setDistance(distance);
-
-            LocalTime heureArrivee = trajet.getHeureDepart().plusHours(duree.getHour())
-                    .plusMinutes(duree.getMinute());
-            trajet.setHeureRetour(heureArrivee);
-
-            trajetService.save(trajet);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public void assignation() throws Exception {
         List<Reservation> reservations = reservationRepository.getAll();
-        double vitesse = parametreRepository.getVitesseMoyenne();
-        List<Distance> distances = distanceRepository.getAll();
-        Hotel aeroport = hotelRepository.getAeroport();
+
         if (reservations == null || reservations.isEmpty()) {
             throw new Exception("Aucune réservation à traiter");
         }
-
+        
+        Double vitesse = parametreRepository.getVitesseMoyenne();
+        List<Distance> distances = distanceRepository.getAll();
+        Hotel aeroport = hotelRepository.getAeroport();
+        
+        List<Trajet> trajets = new ArrayList<>();
         for (Reservation reservation : reservations) {
-            if(reservation.getTrajet() != null) continue;
-            assigner(reservation, vitesse, distances, aeroport);
+            Trajet trajet = trajetService.trouverTrajet(reservation);
+            if(trajet != null) trajets.add(trajet);
+        }
+
+        for (Trajet t : trajets) {
+            trajetService.ordonnerTrajet(t, distances, aeroport);
+            
+            double distance = trajetService.getDistance(t, distances, aeroport);
+            LocalTime duree = trajetService.getDuree(distance, vitesse);
+            t.setDistance(distance);
+
+            LocalTime heureArrivee = t.getHeureDepart().plusHours(duree.getHour())
+                    .plusMinutes(duree.getMinute());
+            t.setHeureRetour(heureArrivee);
+            trajetService.save(t);
         }
     }
 }
