@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import com.example.backoffice.model.Reservation;
+import com.example.backoffice.model.TrajetReservation;
 import com.example.backoffice.model.Trajet;
 import com.example.backoffice.model.Vehicule;
 
@@ -16,7 +16,7 @@ public class TrajetDTO {
     private LocalTime heureRetour;
     private Vehicule vehicule;
     private Double distance;
-    private List<Reservation> reservations;
+    private List<TrajetReservation> trajetReservations;
 
     public TrajetDTO() {
     }
@@ -38,12 +38,12 @@ public class TrajetDTO {
         this.id = id;
     }
 
-    public List<Reservation> getReservations() {
-        return reservations;
+    public List<TrajetReservation> getTrajetReservations() {
+        return trajetReservations;
     }
 
-    public void setReservations(List<Reservation> reservations) {
-        this.reservations = reservations;
+    public void setTrajetReservations(List<TrajetReservation> reservations) {
+        this.trajetReservations = reservations;
     }
 
     public LocalDate getDateTrajet() {

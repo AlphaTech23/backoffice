@@ -105,117 +105,87 @@
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <!-- En-tête -->
-        <div class="mb-8 animate-slide-in">
-            <div class="text-center">
-                <h2 class="text-3xl font-bold text-gray-900">Planification automatique</h2>
-                <p class="text-gray-600 mt-2 max-w-2xl mx-auto">
-                    Lancez l'assignation automatique des véhicules pour optimiser la gestion de votre flotte
-                </p>
-            </div>
-        </div>
+    <%@ include file="../partial/navigation.jsp" %>
 
-        <!-- Messages d'alerte -->
-        <% if (message != null && !message.isEmpty()) { %>
-            <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-start animate-fade-in">
-                <i class="fas fa-check-circle text-green-500 mt-0.5 mr-3"></i>
-                <div>
-                    <p class="text-green-800 font-medium">Succès !</p>
-                    <p class="text-green-600 text-sm"><%= message %></p>
+    <main class="ml-64 p-8">
+        <div class="max-w-4xl mx-auto animate-slide-in">
+            <!-- En-tête -->
+            <div class="mb-8 animate-slide-in">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-900">Planification automatique</h2>
+                    <p class="text-gray-600 mt-2 max-w-2xl mx-auto">
+                        Lancez l'assignation automatique des véhicules pour optimiser la gestion de votre flotte
+                    </p>
                 </div>
-                <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
-        <% } %>
 
-        <% if (error != null && !error.isEmpty()) { %>
-            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start animate-fade-in">
-                <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
-                <div>
-                    <p class="text-red-800 font-medium">Erreur</p>
-                    <p class="text-red-600 text-sm"><%= error %></p>
-                </div>
-                <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        <% } %>
-
-        <!-- Carte principale -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-slide-in">
-            <!-- Illustration en haut -->
-            <div class="gradient-bg px-8 py-6 text-center">
-                <div class="flex justify-center mb-4">
-                    <div class="bg-white/20 p-4 rounded-full inline-flex">
-                        <i class="fas fa-robot text-white text-5xl"></i>
+            <!-- Messages d'alerte -->
+            <% if (message != null && !message.isEmpty()) { %>
+                <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-start animate-fade-in">
+                    <i class="fas fa-check-circle text-green-500 mt-0.5 mr-3"></i>
+                    <div>
+                        <p class="text-green-800 font-medium">Succès !</p>
+                        <p class="text-green-600 text-sm"><%= message %></p>
                     </div>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <h3 class="text-white text-xl font-semibold mb-2">Assignation intelligente</h3>
-                <p class="text-white/80 text-sm">
-                    Notre algorithme optimise l'utilisation de vos véhicules en fonction des réservations
-                </p>
-            </div>
+            <% } %>
 
-            <!-- Corps de la carte -->
-            <div class="p-8">
-                <!-- Formulaire d'assignation -->
-                <form action="assigner" method="post" id="assignmentForm" class="space-y-6">
-                    <!-- Zone d'action principale -->
-                    <div class="flex flex-col items-center space-y-4">
-                        <button type="submit" 
-                                id="submitBtn"
-                                class="gradient-success text-white px-12 py-4 rounded-xl font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 w-full md:w-auto min-w-[300px]">
-                            <i class="fas fa-play text-xl" id="buttonIcon"></i>
-                            <span id="buttonText">Lancer l'assignation automatique</span>
-                        </button>
-                        
-                        <p class="text-xs text-gray-500 flex items-center">
-                            <i class="fas fa-info-circle mr-1 text-blue-500"></i>
-                            Cette opération peut prendre quelques secondes
-                        </p>
+            <% if (error != null && !error.isEmpty()) { %>
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start animate-fade-in">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
+                    <div>
+                        <p class="text-red-800 font-medium">Erreur</p>
+                        <p class="text-red-600 text-sm"><%= error %></p>
                     </div>
-                </form>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            <% } %>
 
-                <!-- Informations complémentaires -->
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <div class="flex items-start space-x-4 text-sm text-gray-600">
-                        <div class="bg-blue-100 p-2 rounded-lg flex-shrink-0">
-                            <i class="fas fa-lightbulb text-blue-600"></i>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-700 mb-1">Comment fonctionne l'assignation ?</p>
-                            <p class="text-xs leading-relaxed">
-                                L'algorithme analyse automatiquement toutes les réservations en cours et assigne 
-                                les véhicules les plus adaptés en fonction de leur capacité, du type de carburant 
-                                et de la distance à parcourir. Les trajets sont ensuite créés automatiquement.
+            <!-- Carte principale -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-slide-in">
+                <!-- Corps de la carte -->
+                <div class="p-8">
+                    <!-- Formulaire d'assignation -->
+                    <form action="assigner" method="post" id="assignmentForm" class="space-y-6">
+                        <!-- Zone d'action principale -->
+                        <div class="flex flex-col items-center space-y-4">
+                            <button type="submit" 
+                                    id="submitBtn"
+                                    class="gradient-success text-white px-12 py-4 rounded-xl font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 w-full md:w-auto min-w-[300px]">
+                                <i class="fas fa-play text-xl" id="buttonIcon"></i>
+                                <span id="buttonText">Lancer l'assignation automatique</span>
+                            </button>
+                            
+                            <p class="text-xs text-gray-500 flex items-center">
+                                <i class="fas fa-info-circle mr-1 text-blue-500"></i>
+                                Cette opération peut prendre quelques secondes
                             </p>
                         </div>
+                    </form>
+
+                    <!-- Informations complémentaires -->
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <div class="flex items-start space-x-4 text-sm text-gray-600">
+                            <div class="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                                <i class="fas fa-lightbulb text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">Comment fonctionne l'assignation ?</p>
+                                <p class="text-xs leading-relaxed">
+                                    L'algorithme analyse automatiquement toutes les réservations en cours et assigne 
+                                    les véhicules les plus adaptés en fonction de leur capacité, du type de carburant 
+                                    et de la distance à parcourir. Les trajets sont ensuite créés automatiquement.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Navigation rapide -->
-        <div class="mt-8 flex justify-center space-x-4 animate-fade-in">
-            <a href="${pageContext.request.contextPath}/vehicules" 
-               class="text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-2">
-                <i class="fas fa-car"></i>
-                <span>Véhicules</span>
-            </a>
-            <span class="text-gray-300">|</span>
-            <a href="${pageContext.request.contextPath}/trajets" 
-               class="text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-2">
-                <i class="fas fa-route"></i>
-                <span>Trajets</span>
-            </a>
-            <span class="text-gray-300">|</span>
-            <a href="${pageContext.request.contextPath}/reservations" 
-               class="text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-2">
-                <i class="fas fa-ticket-alt"></i>
-                <span>Réservations</span>
-            </a>
         </div>
     </main>
 
