@@ -1,0 +1,16 @@
+TL : ETU003340
+DEV : ETU003301, ETU003309
+
+features 1 : ETU003309
+WAIT TIME MANAGEMENT
+    - Modification vue v_trajet
+        Ajout de la colonne min_date_reservation => MIN(r.date_arrivee)
+    - Création de la fonction dans ParametreRepository
+        LocalTime getTempsAttente()
+
+features 2 : ETU003301
+SMART DEPARTURE ADJUSTMENT
+    - Modification de la fonction getByCapacite dans TrajetRepository
+        Trajet getByCapacite(int capacite, LocalDateTime dateTime, LocalTime TA)
+    - Modification de la fonction trouverTrajet dans TrajetService
+        Trajet trouverTrajet(Reservation reservation, List<Distance> distances, Hotel aeroport)
