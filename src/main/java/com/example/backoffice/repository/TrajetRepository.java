@@ -8,8 +8,10 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class TrajetRepository {
@@ -27,7 +29,7 @@ public class TrajetRepository {
                         LEFT JOIN trajet_reservation tr ON tr.id_trajet = t.id
                         LEFT JOIN reservation r ON r.id = tr.id_reservation
                         WHERE t.date_trajet = ?
-                        GROUP BY t.id, t.date_trajet, t.heure_depart, 
+                        GROUP BY t.id, t.date_trajet, t.heure_depart,
                                     t.heure_retour, t.distance, t.id_vehicule
                         ORDER BY COALESCE(SUM(r.nombre_passager), 0);
                 """;
@@ -103,20 +105,25 @@ public class TrajetRepository {
         }
     }
 
-    public Trajet getByCapacite(int capacite, LocalDateTime dateTime) throws Exception {
+    public Trajet getByCapacite(int capacite, LocalDateTime dateTime, LocalTime TA) throws Exception {
 
         String sql = """
                 SELECT *
                 FROM v_trajet vt
                 WHERE vt.places_restantes >= ?
-                    AND vt.date_trajet = ?
+                    AND ? BETWEEN vt.min_date_reservation
+                             AND vt.min_date_reservation + (? * interval '1 minute')
                 ORDER BY id
                 LIMIT 1
                 """;
-        Date sqlDate = Date.valueOf(dateTime.toLocalDate());
+
+        Timestamp sqlDateTime = Timestamp.valueOf(dateTime);
+
+        int minutes = TA.getHour() * 60 + TA.getMinute();
 
         return dao.get(sql, Trajet.class,
                 capacite,
-                sqlDate);
+                sqlDateTime,
+                minutes);
     }
 }
