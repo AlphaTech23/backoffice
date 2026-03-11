@@ -5,13 +5,12 @@ import java.time.LocalDateTime;
 
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
+import com.example.backoffice.dao.DAO;
+import com.example.backoffice.model.Distance;
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Vehicule;
 import com.example.backoffice.repository.TrajetRepository;
-import com.example.backoffice.repository.DistanceRepository;
 import com.example.backoffice.repository.ReservationRepository;
-import com.example.backoffice.repository.HotelRepository;
-import com.example.backoffice.repository.ParametreRepository;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -20,69 +19,68 @@ import java.util.List;
 public class TrajetService {
 
     private ReservationRepository reservationRepository;
-    private DistanceRepository distanceRepository;
-    private HotelRepository hotelRepository;
-    private ParametreRepository parametreRepository;
     private TrajetRepository trajetRepository;
     private VehiculeService vehiculeService;
 
-    public TrajetService() {
-        this.reservationRepository = new ReservationRepository();
-        this.distanceRepository = new DistanceRepository();
-        this.hotelRepository = new HotelRepository();
-        this.parametreRepository = new ParametreRepository();
-        this.trajetRepository = new TrajetRepository();
-        this.vehiculeService = new VehiculeService();
+    public TrajetService(DAO dao) {
+        this.reservationRepository = new ReservationRepository(dao);
+        this.trajetRepository = new TrajetRepository(dao);
+        this.vehiculeService = new VehiculeService(dao);
     }
 
     public List<Trajet> getByDate(LocalDate date) throws Exception {
         return trajetRepository.getByDate(date);
     }
 
-    public double getDistance(Trajet trajet) throws Exception {
+    public Double getBetween(Hotel h1, Hotel h2, List<Distance> distances) {
+        for (Distance d : distances) {
+            String from = d.getFromHotel().getCode(),
+                    to = d.getToHotel().getCode();
+            if ((from.equalsIgnoreCase(h1.getCode()) 
+                    && to.equalsIgnoreCase(h2.getCode())) ||
+                    (from.equalsIgnoreCase(h2.getCode()) 
+                    && to.equalsIgnoreCase(h1.getCode()))) {
+                        return d.getKilometre();
+            }
+        }
+        return 0.;
+    }
+
+    public double getDistance(Trajet trajet, List<Distance> distances, Hotel aeroport) throws Exception {
 
         List<Reservation> reservations = reservationRepository.getByTrajet(trajet.getId(), false);
 
-        if (reservations == null || reservations.isEmpty()) {
-            return 0.0; // pas de réservation → distance nulle
+        if (reservations == null || reservations.isEmpty() ||distances == null || distances.isEmpty()) {
+            return 0.0;
         }
 
         double distance = 0.0;
-        Hotel aeroport = hotelRepository.getAeroport();
 
         for (int i = 0; i < reservations.size(); i++) {
             Hotel currentHotel = reservations.get(i).getHotel();
 
             if (i == 0) {
-                // première réservation → distance aéroport → hôtel
-                distance += distanceRepository.getBetween(aeroport, currentHotel);
+                distance += getBetween(aeroport, currentHotel, distances);
             } else {
-                // distance entre hôtel précédent et hôtel courant
                 Hotel previousHotel = reservations.get(i - 1).getHotel();
-                distance += distanceRepository.getBetween(previousHotel, currentHotel);
+                distance += getBetween(previousHotel, currentHotel, distances);
             }
         }
 
-        // Optionnel : retour à l'aéroport après la dernière réservation
         Hotel lastHotel = reservations.get(reservations.size() - 1).getHotel();
-        distance += distanceRepository.getBetween(lastHotel, aeroport);
+        distance += getBetween(lastHotel, aeroport, distances);
 
         return distance;
     }
 
-    public LocalTime getDuree(double distance) throws Exception {
-
-        // vitesse moyenne en km/h
-        double vitesse = parametreRepository.getVitesseMoyenne();
+    public LocalTime getDuree(double distance, Double vitesse) throws Exception {
 
         if (vitesse <= 0) {
             throw new IllegalArgumentException("Vitesse moyenne invalide");
         }
 
-        // durée en heures
         double dureeHeures = distance / vitesse;
 
-        // convertir en heures et minutes
         int heures = (int) dureeHeures;
         int minutes = (int) Math.round((dureeHeures - heures) * 60);
 
@@ -90,15 +88,12 @@ public class TrajetService {
     }
 
     public Trajet creerTrajet(Reservation reservation) throws Exception {
-        // récupérer un véhicule disponible
         Vehicule vehicule = vehiculeService.getDisponible(reservation);
 
         if (vehicule == null) {
-            // aucun véhicule disponible pour cette réservation
             return null;
         }
 
-        // créer le trajet et assigner le véhicule
         Trajet trajet = new Trajet();
         trajet.setVehicule(vehicule);
         LocalDateTime dateArrivee = reservation.getDateArrivee();
@@ -107,11 +102,9 @@ public class TrajetService {
 
         trajetRepository.save(trajet);
 
-        // assigner ordre = 1 à la réservation
         reservation.setOrdre(1);
         reservation.setTrajet(trajet);
 
-        // sauvegarder la réservation avec le trajet associé
         reservationRepository.save(reservation);
 
         return trajet;
@@ -126,19 +119,18 @@ public class TrajetService {
         Trajet disponible = null;
         int min = Integer.MAX_VALUE;
 
-        // priorité aux véhicules diesel
         for (Trajet trajet : trajets) {
-            if(min < trajet.getVehicule().getCapacite()) break;
-            if(min > trajet.getVehicule().getCapacite()) {
+            if (min < trajet.getVehicule().getCapacite())
+                break;
+            if (min > trajet.getVehicule().getCapacite()) {
                 disponible = trajet;
                 min = trajet.getVehicule().getCapacite();
-            }
-            else if (min == trajet.getVehicule().getCapacite() && trajet.getVehicule().getTypeCarburant().equals("D")) {
+            } else if (min == trajet.getVehicule().getCapacite()
+                    && trajet.getVehicule().getTypeCarburant().equals("D")) {
                 disponible = trajet;
             }
         }
 
-        // sinon choisir un trajet aléatoire
         if (trajets != null && !trajets.isEmpty() && disponible == null) {
             int random = (int) (Math.random() * trajets.size());
             disponible = trajets.get(random);
@@ -150,7 +142,7 @@ public class TrajetService {
         return disponible;
     }
 
-    public void ordonnerTrajet(Trajet trajet) throws Exception {
+    public void ordonnerTrajet(Trajet trajet, List<Distance> distances, Hotel aeroport) throws Exception {
 
         List<Reservation> reservations = reservationRepository.getByTrajet(trajet.getId(), true);
 
@@ -163,7 +155,7 @@ public class TrajetService {
             nonTriees.add(i);
         }
 
-        Hotel lieuActuel = hotelRepository.getAeroport();
+        Hotel lieuActuel = aeroport;
 
         for (int tri = 1; tri <= reservations.size(); tri++) {
 
@@ -172,9 +164,9 @@ public class TrajetService {
 
             for (Integer i : nonTriees) {
 
-                double distance = distanceRepository.getBetween(
+                double distance = getBetween(
                         lieuActuel,
-                        reservations.get(i).getHotel());
+                        reservations.get(i).getHotel(), distances);
 
                 if (distance < min) {
                     min = distance;
@@ -196,17 +188,21 @@ public class TrajetService {
         reservationRepository.updateOrdre(reservations);
     }
 
-    public Trajet trouverTrajet(Reservation reservation) throws Exception {
+    public void save(Trajet trajet) throws Exception {
+        trajetRepository.save(trajet);
+    }
+
+    public Trajet trouverTrajet(Reservation reservation, List<Distance> distances, Hotel aeroport) throws Exception {
         try {
             Trajet trajet = getDisponible(reservation);
             if (trajet == null) {
                 return creerTrajet(reservation);
             }
-            
-            ordonnerTrajet(trajet);
-            
+
+            ordonnerTrajet(trajet, distances, aeroport);
+
             return trajet;
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException(e);

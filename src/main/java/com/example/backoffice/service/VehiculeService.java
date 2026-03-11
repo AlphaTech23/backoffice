@@ -1,5 +1,6 @@
 package com.example.backoffice.service;
 
+import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.TypeCarburant;
 import com.example.backoffice.model.Vehicule;
@@ -12,8 +13,8 @@ public class VehiculeService {
 
     private final VehiculeRepository vehiculeRepository;
 
-    public VehiculeService() {
-        this.vehiculeRepository = new VehiculeRepository();
+    public VehiculeService(DAO dao) {
+        this.vehiculeRepository = new VehiculeRepository(dao);
     }
 
     public void create(String reference, Integer capacite, Integer idTypeCarburant) throws Exception {
@@ -39,7 +40,6 @@ public class VehiculeService {
     }
 
     public Vehicule getDisponible(Reservation reservation) throws Exception {
-        // récupérer tous les véhicules capables de transporter les passagers à cette date
         List<Vehicule> vehicules = vehiculeRepository.getByCapacite(
             reservation.getNombrePassager(),
             reservation.getDateArrivee()
@@ -51,7 +51,6 @@ public class VehiculeService {
         Vehicule disponible = null;
         int min = Integer.MAX_VALUE;
 
-        // prioriser les véhicules avec carburant type 'D'
         for (Vehicule v : vehicules) {
             if(v.getCapacite() > min) break;
             if(min > v.getCapacite()) {
@@ -63,7 +62,6 @@ public class VehiculeService {
         }
 
         if(disponible != null) return disponible;
-        // sinon, renvoyer un véhicule aléatoire parmi les disponibles
         Random random = new Random();
         return vehicules.get(random.nextInt(vehicules.size()));
     }

@@ -10,11 +10,12 @@ import java.util.*;
 
 public class DAO {
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/AeroAssign";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = " ";
+    private final String URL = "jdbc:postgresql://localhost:5432/AeroAssign";
+    private final String USER = "postgres";
+    private final String PASSWORD = " ";
+    private Connection connection;
 
-    static {
+    {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
@@ -22,11 +23,19 @@ public class DAO {
         }
     }
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+    public void connect() throws SQLException {
+        connection = DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    private static String sqlToJava(String columnName) {
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public void close() throws Exception {
+        if(connection != null) connection.close();
+    }
+
+    private String sqlToJava(String columnName) {
         StringBuilder sb = new StringBuilder();
         boolean upperNext = false;
         for (char c : columnName.toCharArray()) {
@@ -40,7 +49,7 @@ public class DAO {
         return sb.toString();
     }
 
-    private static String javaToSql(String fieldName) {
+    private String javaToSql(String fieldName) {
         StringBuilder sb = new StringBuilder();
         int i = 1;
         for (char c : fieldName.toCharArray()) {
@@ -54,9 +63,8 @@ public class DAO {
         return sb.toString();
     }
 
-    public static int executeUpdate(String sql, Object... params) throws SQLException {
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    public int executeUpdate(String sql, Object... params) throws SQLException {
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             for (int i = 0; i < params.length; i++) {
                 stmt.setObject(i + 1, params[i]);
@@ -66,10 +74,9 @@ public class DAO {
         }
     }
 
-    public static <T> T get(String sql, Class<T> clazz, Object... params) throws Exception {
+    public <T> T get(String sql, Class<T> clazz, Object... params) throws Exception {
         if (isSimpleType(clazz)) {
-            try (Connection conn = getConnection();
-                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
 
                 for (int i = 0; i < params.length; i++) {
                     stmt.setObject(i + 1, params[i]);
@@ -95,11 +102,10 @@ public class DAO {
         return list.get(0);
     }
 
-    public static <T> List<T> getList(String sql, Class<T> clazz, Object... params) throws Exception {
+    public <T> List<T> getList(String sql, Class<T> clazz, Object... params) throws Exception {
         List<T> resultList = new ArrayList<>();
 
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
 
             for (int i = 0; i < params.length; i++) {
                 Object param = params[i];
@@ -144,7 +150,7 @@ public class DAO {
         return resultList;
     }
 
-    private static void mapField(Object obj, String columnName, Object value) throws Exception {
+    private void mapField(Object obj, String columnName, Object value) throws Exception {
         String fieldName = sqlToJava(columnName);
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
@@ -154,7 +160,7 @@ public class DAO {
         }
     }
 
-    private static void assignValue(Object obj, Field field, Object value) throws IllegalAccessException {
+    private void assignValue(Object obj, Field field, Object value) throws IllegalAccessException {
         if (value == null)
             return;
 
@@ -183,25 +189,26 @@ public class DAO {
         }
     }
 
-    private static boolean isSimpleType(Class<?> clazz) {
+    private boolean isSimpleType(Class<?> clazz) {
         return clazz.isPrimitive()
                 || clazz == String.class
                 || Number.class.isAssignableFrom(clazz)
                 || clazz == Boolean.class
                 || clazz == LocalDateTime.class
+                || clazz == LocalDate.class
+                || clazz == LocalTime.class
                 || clazz == java.util.Date.class;
     }
 
-    private static void mapNestedObjectsLazy(Object parent, ResultSet rs) throws Exception {
+    private void mapNestedObjectsLazy(Object parent, ResultSet rs) throws Exception {
         for (Field field : parent.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             Class<?> type = field.getType();
             if (isSimpleType(type))
                 continue;
 
-            String table = javaToSql(type.getSimpleName());
-            String idColumn = "id_" + table;
-
+            String table = javaToSql(type.getSimpleName()).toLowerCase();
+            String idColumn = "id_" + javaToSql(field.getName());
             Object idValue;
             try {
                 idValue = rs.getObject(idColumn);

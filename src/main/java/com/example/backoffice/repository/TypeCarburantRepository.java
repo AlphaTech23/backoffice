@@ -6,8 +6,12 @@ import com.example.backoffice.model.TypeCarburant;
 import java.util.List;
 
 public class TypeCarburantRepository {
+    public final DAO dao;
 
+    public TypeCarburantRepository(DAO dao) {
+        this.dao = dao;
+    }
     public List<TypeCarburant> getAll() throws Exception {
-        return DAO.getList("SELECT * FROM type_carburant", TypeCarburant.class);
+        return dao.getList("SELECT * FROM type_carburant", TypeCarburant.class);
     }
 }
