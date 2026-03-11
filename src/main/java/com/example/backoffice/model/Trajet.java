@@ -11,17 +11,19 @@ public class Trajet {
     private LocalTime heureRetour;
     private Vehicule vehicule;
     private Double distance;
+    private Integer placesRestantes;
 
     public Trajet() {
     }
 
-    public Trajet(Integer id, LocalDate dateTrajet, LocalTime heureDepart, LocalTime heureRetour, Vehicule vehicule, Double distance) {
+    public Trajet(Integer id, LocalDate dateTrajet, LocalTime heureDepart, LocalTime heureRetour, Vehicule vehicule, Double distance, Integer placesRestantes) {
         this.id = id;
         this.dateTrajet = dateTrajet;
         this.heureDepart = heureDepart;
         this.heureRetour = heureRetour;
         this.vehicule = vehicule;
         this.distance = distance;
+        this.placesRestantes = placesRestantes;
     }
 
     public Integer getId() {
@@ -70,5 +72,13 @@ public class Trajet {
 
     public void setDistance(Double distance) {
         this.distance = distance;
+    }
+
+    public Integer getPlacesRestantes() {
+        return placesRestantes;
+    }
+
+    public void setPlacesRestantes(Integer placesRestantes) {
+        this.placesRestantes = placesRestantes;
     }
 }

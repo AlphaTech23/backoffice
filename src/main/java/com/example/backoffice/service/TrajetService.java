@@ -36,11 +36,11 @@ public class TrajetService {
         for (Distance d : distances) {
             String from = d.getFromHotel().getCode(),
                     to = d.getToHotel().getCode();
-            if ((from.equalsIgnoreCase(h1.getCode()) 
+            if ((from.equalsIgnoreCase(h1.getCode())
                     && to.equalsIgnoreCase(h2.getCode())) ||
-                    (from.equalsIgnoreCase(h2.getCode()) 
-                    && to.equalsIgnoreCase(h1.getCode()))) {
-                        return d.getKilometre();
+                    (from.equalsIgnoreCase(h2.getCode())
+                            && to.equalsIgnoreCase(h1.getCode()))) {
+                return d.getKilometre();
             }
         }
         return 0.;
@@ -50,7 +50,7 @@ public class TrajetService {
 
         List<Reservation> reservations = reservationRepository.getByTrajet(trajet.getId(), false);
 
-        if (reservations == null || reservations.isEmpty() ||distances == null || distances.isEmpty()) {
+        if (reservations == null || reservations.isEmpty() || distances == null || distances.isEmpty()) {
             return 0.0;
         }
 
@@ -103,9 +103,6 @@ public class TrajetService {
         trajetRepository.save(trajet);
 
         reservation.setOrdre(1);
-        reservation.setTrajet(trajet);
-
-        reservationRepository.save(reservation);
 
         return trajet;
     }
@@ -120,13 +117,13 @@ public class TrajetService {
         int min = Integer.MAX_VALUE;
 
         for (Trajet trajet : trajets) {
-            if (min < trajet.getVehicule().getCapacite())
+            if (min < trajet.getPlacesRestantes())
                 break;
-            if (min > trajet.getVehicule().getCapacite()) {
+            if (min > trajet.getPlacesRestantes()) {
                 disponible = trajet;
-                min = trajet.getVehicule().getCapacite();
-            } else if (min == trajet.getVehicule().getCapacite()
-                    && trajet.getVehicule().getTypeCarburant().equals("D")) {
+                min = trajet.getPlacesRestantes();
+            } else if (min == trajet.getPlacesRestantes()
+                    && trajet.getVehicule().getTypeCarburant().getCode().equals("D")) {
                 disponible = trajet;
             }
         }
@@ -135,9 +132,6 @@ public class TrajetService {
             int random = (int) (Math.random() * trajets.size());
             disponible = trajets.get(random);
         }
-
-        reservation.setTrajet(disponible);
-        reservationRepository.save(reservation);
 
         return disponible;
     }
@@ -194,14 +188,18 @@ public class TrajetService {
 
     public Trajet trouverTrajet(Reservation reservation, List<Distance> distances, Hotel aeroport) throws Exception {
         try {
-            Trajet trajet = getDisponible(reservation);
-            if (trajet == null) {
-                return creerTrajet(reservation);
+            Trajet dispo = getDisponible(reservation);
+            Trajet create = creerTrajet(reservation);
+            if (dispo == null || dispo.getPlacesRestantes() > create.getVehicule().getCapacite()) {
+                reservation.setTrajet(dispo);
+                reservationRepository.save(reservation);
+                return create;
             }
+            reservation.setTrajet(dispo);
+            reservationRepository.save(reservation);
+            ordonnerTrajet(dispo, distances, aeroport);
 
-            ordonnerTrajet(trajet, distances, aeroport);
-
-            return trajet;
+            return dispo;
 
         } catch (Exception e) {
             e.printStackTrace();
