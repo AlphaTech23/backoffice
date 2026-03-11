@@ -110,7 +110,6 @@ public class TrajetRepository {
                     AND vt.date_trajet = ?
                 ORDER BY places_restantes
                 """;
-
         Date sqlDate = Date.valueOf(dateTime.toLocalDate());
 
         return dao.getList(sql, Trajet.class,

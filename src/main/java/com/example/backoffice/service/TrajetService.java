@@ -33,8 +33,9 @@ public class TrajetService {
     }
 
     public Double getBetween(Hotel h1, Hotel h2, List<Distance> distances) {
-        if(h1.getCode().equals(h2.getCode())) return 0.;
-        
+        if (h1.getCode().equals(h2.getCode()))
+            return 0.;
+
         for (Distance d : distances) {
             String from = d.getFromHotel().getCode(),
                     to = d.getToHotel().getCode();
@@ -102,8 +103,6 @@ public class TrajetService {
         trajet.setDateTrajet(dateArrivee.toLocalDate());
         trajet.setHeureDepart(dateArrivee.toLocalTime());
 
-        trajetRepository.save(trajet);
-
         reservation.setOrdre(1);
 
         return trajet;
@@ -114,7 +113,6 @@ public class TrajetService {
         List<Trajet> trajets = trajetRepository.getByCapacite(
                 reservation.getNombrePassager(),
                 reservation.getDateArrivee());
-
         Trajet disponible = null;
         int min = Integer.MAX_VALUE;
 
@@ -188,25 +186,31 @@ public class TrajetService {
         trajetRepository.save(trajet);
     }
 
+    public void assign(Trajet trajet, Reservation reservation) throws Exception {
+        reservation.setTrajet(trajet);
+        reservationRepository.save(reservation);
+        trajetRepository.save(trajet);
+    }
+
     public Trajet trouverTrajet(Reservation reservation, List<Distance> distances, Hotel aeroport) throws Exception {
         try {
             Trajet dispo = getDisponible(reservation);
             Trajet create = creerTrajet(reservation);
-            if (dispo == null || dispo.getPlacesRestantes() > create.getVehicule().getCapacite()) {
-                reservation.setTrajet(dispo);
-                reservationRepository.save(reservation);
-                return create;
-            } else if (dispo.getPlacesRestantes() == create.getVehicule().getCapacite()
-                    && create.getVehicule().getTypeCarburant().getCode().equalsIgnoreCase("D")
-                    && !dispo.getVehicule().getTypeCarburant().getCode().equalsIgnoreCase("D")) {
-                reservation.setTrajet(dispo);
-                reservationRepository.save(reservation);
-                return create;
+            if (create != null) {
+                if (dispo == null || dispo.getPlacesRestantes() > create.getVehicule().getCapacite()) {
+                    assign(create, reservation);
+                    return create;
+                } else if (dispo.getPlacesRestantes() == create.getVehicule().getCapacite()
+                        && create.getVehicule().getTypeCarburant().getCode().equalsIgnoreCase("D")
+                        && !dispo.getVehicule().getTypeCarburant().getCode().equalsIgnoreCase("D")) {
+                    assign(create, reservation);
+                    return create;
+                }
             }
-            reservation.setTrajet(dispo);
-            reservationRepository.save(reservation);
-            ordonnerTrajet(dispo, distances, aeroport);
-
+            if (dispo != null) {
+                assign(dispo, reservation);
+                ordonnerTrajet(dispo, distances, aeroport);
+            }
             return dispo;
 
         } catch (Exception e) {
