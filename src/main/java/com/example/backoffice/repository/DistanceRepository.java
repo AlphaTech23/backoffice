@@ -1,25 +1,24 @@
 package com.example.backoffice.repository;
 
+import java.util.List;
+
 import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Distance;
-import com.example.backoffice.model.Hotel;
 
 public class DistanceRepository {
+    private final DAO dao;
 
-    public Double getBetween(Hotel h1, Hotel h2) throws Exception {
+    public DistanceRepository(DAO dao) {
+        this.dao = dao;
+    }
 
+    public List<Distance> getAll() throws Exception {
         String sql = """
             SELECT *
             FROM distance
-            WHERE (id_from_hotel = ? AND id_to_hotel = ?)
-            OR (id_from_hotel = ? AND id_to_hotel = ?)
+            ORDER BY kilometre
         """;
-
-        Distance km = DAO.get(sql, Distance.class,
-                h1.getId(), h2.getId(),
-                h2.getId(), h1.getId());
-        System.out.println(km.getKilometre());
-
-        return km != null ? km.getKilometre() : null;
+        List<Distance> distances = dao.getList(sql, Distance.class);
+        return distances;
     }
 }

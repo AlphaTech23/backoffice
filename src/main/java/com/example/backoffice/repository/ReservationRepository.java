@@ -9,6 +9,11 @@ import java.time.LocalDateTime;
 import java.sql.Timestamp;
 
 public class ReservationRepository {
+    private final DAO dao;
+
+    public ReservationRepository(DAO dao) {
+        this.dao = dao;
+    }
 
     public int save(Reservation reservation) throws Exception {
 
@@ -25,7 +30,7 @@ public class ReservationRepository {
                         WHERE id = ?
                     """;
 
-            return DAO.executeUpdate(
+            return dao.executeUpdate(
                     sql,
                     reservation.getIdClient(),
                     reservation.getNombrePassager(),
@@ -42,7 +47,7 @@ public class ReservationRepository {
                         VALUES (?, ?, ?, ?, ?, ?)
                     """;
 
-            return DAO.executeUpdate(
+            return dao.executeUpdate(
                     sql,
                     reservation.getIdClient(),
                     reservation.getNombrePassager(),
@@ -58,14 +63,14 @@ public class ReservationRepository {
         String sql = """
                     SELECT *
                     FROM reservation
-                    ORDER BY date_arrivee ASC
+                    ORDER BY nombre_passager ASC
                 """;
 
-        return DAO.getList(sql, Reservation.class);
+        return dao.getList(sql, Reservation.class);
     }
 
     public List<Reservation> getByDateArrivee(LocalDateTime dateArrivee) throws Exception {
-        return DAO.getList("SELECT * FROM reservation WHERE date(date_arrive) = date(?)", Reservation.class,
+        return dao.getList("SELECT * FROM reservation WHERE date(date_arrive) = date(?)", Reservation.class,
                 Timestamp.valueOf(dateArrivee));
     }
 
@@ -79,9 +84,9 @@ public class ReservationRepository {
 
         if (date != null) {
             sql += " AND DATE(date_arrivee) = ?";
-            return DAO.getList(sql, Reservation.class, java.sql.Date.valueOf(date));
+            return dao.getList(sql, Reservation.class, java.sql.Date.valueOf(date));
         } else {
-            return DAO.getList(sql, Reservation.class);
+            return dao.getList(sql, Reservation.class);
         }
     }
 
@@ -100,7 +105,7 @@ public class ReservationRepository {
             sql += " ORDER BY r.ordre ASC";
         }
 
-        return DAO.getList(sql, Reservation.class, trajetId);
+        return dao.getList(sql, Reservation.class, trajetId);
     }
 
     public void updateOrdre(List<Reservation> reservations) throws Exception {
@@ -112,7 +117,7 @@ public class ReservationRepository {
                 """;
 
         for (Reservation r : reservations) {
-            DAO.executeUpdate(sql,
+            dao.executeUpdate(sql,
                     r.getOrdre(),
                     r.getId());
         }

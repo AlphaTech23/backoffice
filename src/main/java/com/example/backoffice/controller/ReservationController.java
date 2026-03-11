@@ -8,6 +8,7 @@ import com.example.framework.annotations.Json;
 import com.example.framework.annotations.PostMapping;
 import com.example.framework.core.ModelView;
 import com.example.backoffice.service.HotelService;
+import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Reservation;
 
 import java.time.LocalDate;
@@ -17,24 +18,29 @@ import java.util.List;
 @Controller
 public class ReservationController {
 
-    private ReservationService reservationService;
-    private HotelService hotelService;
+    private final ReservationService reservationService;
+    private final HotelService hotelService;
+    private final DAO dao;
 
     public ReservationController() {
-        this.reservationService = new ReservationService();
-        this.hotelService = new HotelService();
+        dao = new DAO();
+        this.reservationService = new ReservationService(dao);
+        this.hotelService = new HotelService(dao);
     }
 
     @GetMapping("/reservation/form")
-    public ModelView form() {
+    public ModelView form() throws Exception {
 
         ModelView mv = new ModelView("/reservation/form.jsp");
 
         try {
+            dao.connect();
             mv.addAttribute("hotels", hotelService.getAll());
         } catch (Exception e) {
             mv.addAttribute("hotels", List.of());
             mv.addAttribute("error", "Impossible de charger la liste des hôtels : " + e.getMessage());
+        } finally {
+            dao.close();
         }
 
         return mv;
@@ -44,11 +50,12 @@ public class ReservationController {
     public ModelView reserver(String idClient,
             Integer nombrePassager,
             String dateArrivee,
-            Integer idHotel) {
+            Integer idHotel) throws Exception {
 
         ModelView mv = new ModelView("/reservation/form.jsp");
 
         try {
+            dao.connect();
             reservationService.reserver(
                     idClient,
                     nombrePassager,
@@ -56,16 +63,12 @@ public class ReservationController {
                     idHotel);
 
             mv.addAttribute("message", "Réservation effectuée avec succès");
-
-        } catch (Exception e) {
-            mv.addAttribute("error", "Erreur lors de la réservation : " + e.getMessage());
-        }
-
-        try {
             mv.addAttribute("hotels", hotelService.getAll());
         } catch (Exception e) {
             mv.addAttribute("hotels", List.of());
             mv.addAttribute("error", "Impossible de charger la liste des hôtels : " + e.getMessage());
+        } finally {
+            dao.close();
         }
 
         return mv;
@@ -75,19 +78,30 @@ public class ReservationController {
     @Json
     @Authorized
     public List<Reservation> getReservations(String date) throws Exception {
-        return reservationService.getByDateArrivee(date);
+        try {
+            dao.connect();
+            List<Reservation> reservations = reservationService.getByDateArrivee(date);
+            return reservations;
+        } catch(Exception e) {
+            throw e;
+        } finally {
+            dao.close();
+        }
     }
 
     @GetMapping("/reservations/non-assigner")
-    public ModelView getNonAssigne(LocalDate date) {
+    public ModelView getNonAssigne(LocalDate date) throws Exception {
 
         ModelView mv = new ModelView("/reservation/unassigned-list.jsp");
 
         try {
+            dao.connect();
             mv.addAttribute("reservations", reservationService.getNonAssigne(date));
             mv.addAttribute("date", date);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            dao.close();
         }
 
         return mv;

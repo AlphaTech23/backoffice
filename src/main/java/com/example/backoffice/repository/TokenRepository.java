@@ -6,7 +6,16 @@ import com.example.backoffice.model.Token;
 public class TokenRepository {
 
     public Token findByValue(String tokenValue) throws Exception {
-        String sql = "SELECT * FROM token WHERE token = ?";
-        return DAO.get(sql, Token.class, tokenValue);
+        DAO dao = new DAO();
+        try {
+            dao.connect();
+            String sql = "SELECT * FROM token WHERE token = ?";
+            Token token = dao.get(sql, Token.class, tokenValue);
+            return token;
+        } catch(Exception e) {
+            throw e;
+        } finally {
+            dao.close();
+        }
     }
 }

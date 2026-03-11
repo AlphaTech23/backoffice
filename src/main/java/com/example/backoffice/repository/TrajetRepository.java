@@ -3,7 +3,6 @@ package com.example.backoffice.repository;
 import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Trajet;
 
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
@@ -14,6 +13,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class TrajetRepository {
+    private final DAO dao;
+
+    public TrajetRepository(DAO dao) {
+        this.dao = dao;
+    }
 
     public List<Trajet> getByDate(LocalDate date) throws Exception {
 
@@ -26,7 +30,7 @@ public class TrajetRepository {
                     ORDER BY COALESCE(SUM(r.nombre_passager),0)
                 """;
 
-        return DAO.getList(sql, Trajet.class, date);
+        return dao.getList(sql, Trajet.class, date);
     }
 
     public List<Trajet> getByVehicule(Integer vehiculeId, LocalDateTime dateTime) throws Exception {
@@ -45,7 +49,7 @@ public class TrajetRepository {
         Date sqlDate = Date.valueOf(dateTime.toLocalDate());
         Time sqlTime = Time.valueOf(dateTime.toLocalTime());
 
-        return DAO.getList(sql, Trajet.class, vehiculeId, sqlDate, sqlTime, sqlTime);
+        return dao.getList(sql, Trajet.class, vehiculeId, sqlDate, sqlTime, sqlTime);
     }
 
     public void save(Trajet trajet) throws Exception {
@@ -62,7 +66,7 @@ public class TrajetRepository {
                         WHERE id = ?
                     """;
 
-            DAO.executeUpdate(sql,
+            dao.executeUpdate(sql,
                     Date.valueOf(trajet.getDateTrajet()),
                     Time.valueOf(trajet.getHeureDepart()),
                     Time.valueOf(trajet.getHeureRetour()),
@@ -77,26 +81,23 @@ public class TrajetRepository {
                         VALUES (?, ?, ?, ?, ?)
                     """;
 
-            try (Connection conn = DAO.getConnection()) {
+            PreparedStatement ps = dao.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setDate(1, trajet.getDateTrajet() != null ? Date.valueOf(trajet.getDateTrajet()) : null);
+            ps.setTime(2, trajet.getHeureDepart() != null ? Time.valueOf(trajet.getHeureDepart()) : null);
+            ps.setTime(3, trajet.getHeureRetour() != null ? Time.valueOf(trajet.getHeureRetour()) : null);
+            ps.setInt(4, trajet.getVehicule().getId());
+            ps.setDouble(5, trajet.getDistance() != null ? trajet.getDistance() : 0);
 
-                ps.setDate(1, trajet.getDateTrajet() != null ? Date.valueOf(trajet.getDateTrajet()) : null);
-                ps.setTime(2, trajet.getHeureDepart() != null ? Time.valueOf(trajet.getHeureDepart()) : null);
-                ps.setTime(3, trajet.getHeureRetour() != null ? Time.valueOf(trajet.getHeureRetour()) : null);
-                ps.setInt(4, trajet.getVehicule().getId());
-                ps.setDouble(5, trajet.getDistance() != null ? trajet.getDistance() : 0);
+            ps.executeUpdate();
 
-                ps.executeUpdate();
-
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    trajet.setId(rs.getInt(1)); // <-- on met l'id généré dans l'objet
-                }
-
-                rs.close();
-                ps.close();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                trajet.setId(rs.getInt(1));
             }
+
+            rs.close();
+            ps.close();
         }
     }
 
@@ -112,7 +113,7 @@ public class TrajetRepository {
 
         Date sqlDate = Date.valueOf(dateTime.toLocalDate());
 
-        return DAO.getList(sql, Trajet.class,
+        return dao.getList(sql, Trajet.class,
                 capacite,
                 sqlDate);
     }

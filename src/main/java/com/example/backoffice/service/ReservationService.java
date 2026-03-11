@@ -1,7 +1,11 @@
 package com.example.backoffice.service;
 
+import com.example.backoffice.repository.DistanceRepository;
+import com.example.backoffice.repository.HotelRepository;
+import com.example.backoffice.repository.ParametreRepository;
 import com.example.backoffice.repository.ReservationRepository;
-import com.example.backoffice.repository.TrajetRepository;
+import com.example.backoffice.dao.DAO;
+import com.example.backoffice.model.Distance;
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
@@ -15,14 +19,18 @@ import java.time.LocalTime;
 
 public class ReservationService {
 
-    private ReservationRepository reservationRepository;
-    private TrajetRepository trajetRepository;
-    private TrajetService trajetService;
+    private final ReservationRepository reservationRepository;
+    private final TrajetService trajetService;
+    private final ParametreRepository parametreRepository;
+    private final DistanceRepository distanceRepository;
+    private final HotelRepository hotelRepository;
 
-    public ReservationService() {
-        this.reservationRepository = new ReservationRepository();
-        this.trajetRepository = new TrajetRepository();
-        this.trajetService = new TrajetService();
+    public ReservationService(DAO dao) {
+        this.reservationRepository = new ReservationRepository(dao);
+        this.trajetService = new TrajetService(dao);
+        this.parametreRepository = new ParametreRepository(dao);
+        this.distanceRepository = new DistanceRepository(dao);
+        this.hotelRepository = new HotelRepository(dao);
     }
 
     public Reservation reserver(String idClient,
@@ -49,7 +57,6 @@ public class ReservationService {
             return reservationRepository.getAll();
         }
 
-        // Expected format yyyy-MM-dd
         LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         LocalDateTime startOfDay = date.atStartOfDay();
 
@@ -64,24 +71,20 @@ public class ReservationService {
         return reservationRepository.getByTrajet(id, false);
     }
 
-    public void assigner(Reservation reservation) throws Exception {
-        // créer ou récupérer un trajet pour cette réservation
-        Trajet trajet = trajetService.trouverTrajet(reservation);
+    public void assigner(Reservation reservation, Double vitesse, List<Distance> distances, Hotel aeroport) throws Exception {
+        Trajet trajet = trajetService.trouverTrajet(reservation, distances, aeroport);
         
         if (trajet != null) {
             try {
-            // distance totale en km
-            double distance = trajetService.getDistance(trajet);
-            LocalTime duree = trajetService.getDuree(distance);
+            double distance = trajetService.getDistance(trajet, distances, aeroport);
+            LocalTime duree = trajetService.getDuree(distance, vitesse);
             trajet.setDistance(distance);
 
-            // calculer l'heure d'arrivée en ajoutant la durée estimée
             LocalTime heureArrivee = trajet.getHeureDepart().plusHours(duree.getHour())
                     .plusMinutes(duree.getMinute());
             trajet.setHeureRetour(heureArrivee);
 
-            // sauvegarder le trajet
-            trajetRepository.save(trajet);
+            trajetService.save(trajet);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -89,18 +92,17 @@ public class ReservationService {
     }
 
     public void assignation() throws Exception {
-        // récupérer toutes les réservations non encore assignées
         List<Reservation> reservations = reservationRepository.getAll();
-
+        double vitesse = parametreRepository.getVitesseMoyenne();
+        List<Distance> distances = distanceRepository.getAll();
+        Hotel aeroport = hotelRepository.getAeroport();
         if (reservations == null || reservations.isEmpty()) {
             throw new Exception("Aucune réservation à traiter");
         }
 
-        // parcourir chaque réservation et l'assigner
         for (Reservation reservation : reservations) {
             if(reservation.getTrajet() != null) continue;
-            assigner(reservation);
-                
+            assigner(reservation, vitesse, distances, aeroport);
         }
     }
 }

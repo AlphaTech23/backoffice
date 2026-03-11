@@ -9,24 +9,28 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class VehiculeRepository {
+    private final DAO dao;
 
+    public VehiculeRepository(DAO dao) {
+        this.dao = dao;
+    }
     public void create(Vehicule v) throws Exception {
         String sql = "INSERT INTO vehicule(reference, capacite, id_type_carburant) VALUES (?, ?, ?)";
-        DAO.executeUpdate(sql, v.getReference(), v.getCapacite(), v.getTypeCarburant().getId());
+        dao.executeUpdate(sql, v.getReference(), v.getCapacite(), v.getTypeCarburant().getId());
     }
 
     public void update(Vehicule v) throws Exception {
         String sql = "UPDATE vehicule SET reference=?, capacite=?, id_type_carburant=? WHERE id=?";
-        DAO.executeUpdate(sql, v.getReference(), v.getCapacite(), v.getTypeCarburant().getId(), v.getId());
+        dao.executeUpdate(sql, v.getReference(), v.getCapacite(), v.getTypeCarburant().getId(), v.getId());
     }
 
     public void delete(Integer id) throws Exception {
         String sql = "DELETE FROM vehicule WHERE id=?";
-        DAO.executeUpdate(sql, id);
+        dao.executeUpdate(sql, id);
     }
 
     public List<Vehicule> getAll() throws Exception {
-        return DAO.getList("SELECT * FROM vehicule", Vehicule.class);
+        return dao.getList("SELECT * FROM vehicule", Vehicule.class);
     }
 
     public List<Vehicule> getByCapacite(int capacite, LocalDateTime date) throws Exception {
@@ -45,7 +49,7 @@ public class VehiculeRepository {
                         ORDER BY v.capacite;
                 """;
 
-        return DAO.getList(
+        return dao.getList(
                 sql,
                 Vehicule.class,
                 capacite,

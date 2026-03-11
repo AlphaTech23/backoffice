@@ -1,5 +1,6 @@
 package com.example.backoffice.service;
 
+import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.TypeCarburant;
 import com.example.backoffice.repository.TypeCarburantRepository;
 
@@ -9,8 +10,8 @@ public class TypeCarburantService {
 
     private final TypeCarburantRepository typeCarburantRepository;
 
-    public TypeCarburantService() {
-        this.typeCarburantRepository = new TypeCarburantRepository();
+    public TypeCarburantService(DAO dao) {
+        this.typeCarburantRepository = new TypeCarburantRepository(dao);
     }
 
     public List<TypeCarburant> getAll() throws Exception {
