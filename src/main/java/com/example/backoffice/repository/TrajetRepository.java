@@ -23,11 +23,13 @@ public class TrajetRepository {
 
         String sql = """
                     SELECT t.*
-                    FROM trajet t
-                    LEFT JOIN reservation r ON r.id_trajet = t.id
-                    WHERE t.date_trajet = ?
-                    GROUP BY t.id
-                    ORDER BY COALESCE(SUM(r.nombre_passager),0)
+                        FROM trajet t
+                        LEFT JOIN trajet_reservation tr ON tr.id_trajet = t.id
+                        LEFT JOIN reservation r ON r.id = tr.id_reservation
+                        WHERE t.date_trajet = ?
+                        GROUP BY t.id, t.date_trajet, t.heure_depart, 
+                                    t.heure_retour, t.distance, t.id_vehicule
+                        ORDER BY COALESCE(SUM(r.nombre_passager), 0);
                 """;
 
         return dao.getList(sql, Trajet.class, date);
@@ -101,18 +103,19 @@ public class TrajetRepository {
         }
     }
 
-    public List<Trajet> getByCapacite(int capacite, LocalDateTime dateTime) throws Exception {
+    public Trajet getByCapacite(int capacite, LocalDateTime dateTime) throws Exception {
 
         String sql = """
                 SELECT *
                 FROM v_trajet vt
                 WHERE vt.places_restantes >= ?
                     AND vt.date_trajet = ?
-                ORDER BY places_restantes
+                ORDER BY id
+                LIMIT 1
                 """;
         Date sqlDate = Date.valueOf(dateTime.toLocalDate());
 
-        return dao.getList(sql, Trajet.class,
+        return dao.get(sql, Trajet.class,
                 capacite,
                 sqlDate);
     }

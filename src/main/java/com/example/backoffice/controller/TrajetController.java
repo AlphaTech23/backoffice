@@ -8,7 +8,9 @@ import com.example.backoffice.service.TrajetService;
 import com.example.backoffice.dao.DAO;
 import com.example.backoffice.dto.TrajetDTO;
 import com.example.backoffice.model.Trajet;
+import com.example.backoffice.model.TrajetReservation;
 import com.example.backoffice.service.ReservationService;
+import com.example.backoffice.service.TrajetReservationService;
 import com.example.framework.annotations.Controller;
 import com.example.framework.annotations.GetMapping;
 import com.example.framework.annotations.PostMapping;
@@ -19,12 +21,14 @@ public class TrajetController {
 
     private final TrajetService trajetService;
     private final ReservationService reservationService;
+    private final TrajetReservationService trajetReservationService;
     private final DAO dao;
 
     public TrajetController() {
         dao = new DAO();
         this.trajetService = new TrajetService(dao);
         this.reservationService = new ReservationService(dao);
+        this.trajetReservationService = new TrajetReservationService(dao);
     }
 
     @GetMapping("/trajets")
@@ -36,7 +40,8 @@ public class TrajetController {
             List<TrajetDTO> trajetDTOs = new ArrayList<>();
             for (Trajet trajet : trajets) {
                 TrajetDTO trajetDTO = new TrajetDTO(trajet);
-                trajetDTO.setReservations(reservationService.getByTrajet(trajet.getId()));
+                List<TrajetReservation> tr = trajetReservationService.getByTrajet(trajet.getId(), false);
+                trajetDTO.setTrajetReservations(tr);
                 trajetDTOs.add(trajetDTO);
             }
             mv.addAttribute("trajets", trajetDTOs);

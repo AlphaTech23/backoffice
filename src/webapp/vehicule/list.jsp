@@ -98,190 +98,194 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- En-tête avec statistiques -->
-        <div class="mb-8 animate-slide-in">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h2 class="text-3xl font-bold text-gray-900">Véhicules</h2>
-                    <p class="text-gray-600 mt-1">Gérez l'ensemble de votre flotte de véhicules</p>
-                </div>
-                <button onclick="openAddModal()" 
-                        class="gradient-bg text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
-                    <i class="fas fa-plus-circle mr-2"></i>
-                    Nouveau véhicule
-                </button>
-            </div>
+    <%@ include file="../partial/navigation.jsp" %>
 
-            <!-- Cartes de statistiques -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 vehicle-card">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Total véhicules</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-2"><%= totalVehicules %></p>
+    <main class="ml-64 p-8">
+        <div class="max-w-7xl mx-auto animate-slide-in">
+            <!-- En-tête avec statistiques -->
+            <div class="mb-8 animate-slide-in">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900">Véhicules</h2>
+                        <p class="text-gray-600 mt-1">Gérez l'ensemble de votre flotte de véhicules</p>
+                    </div>
+                    <button onclick="openAddModal()" 
+                            class="gradient-bg text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Nouveau véhicule
+                    </button>
+                </div>
+
+                <!-- Cartes de statistiques -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 vehicle-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Total véhicules</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><%= totalVehicules %></p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-car text-blue-600 text-2xl"></i>
+                            </div>
                         </div>
-                        <div class="bg-blue-100 p-3 rounded-lg">
-                            <i class="fas fa-car text-blue-600 text-2xl"></i>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 vehicle-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Capacité totale</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><%= totalCapacite %></p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <i class="fas fa-users text-green-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 vehicle-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Types carburant</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><%= typesCarburant %></p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-lg">
+                                <i class="fas fa-gas-pump text-purple-600 text-2xl"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 vehicle-card">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Capacité totale</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-2"><%= totalCapacite %></p>
-                        </div>
-                        <div class="bg-green-100 p-3 rounded-lg">
-                            <i class="fas fa-users text-green-600 text-2xl"></i>
-                        </div>
+            </div>
+
+            <!-- Messages d'alerte -->
+            <% if (message != null && !message.isEmpty()) { %>
+                <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-start animate-fade-in">
+                    <i class="fas fa-check-circle text-green-500 mt-0.5 mr-3"></i>
+                    <div>
+                        <p class="text-green-800 font-medium">Succès !</p>
+                        <p class="text-green-600 text-sm"><%= message %></p>
                     </div>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 vehicle-card">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Types carburant</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-2"><%= typesCarburant %></p>
-                        </div>
-                        <div class="bg-purple-100 p-3 rounded-lg">
-                            <i class="fas fa-gas-pump text-purple-600 text-2xl"></i>
-                        </div>
+            <% } %>
+
+            <% if (error != null && !error.isEmpty()) { %>
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start animate-fade-in">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
+                    <div>
+                        <p class="text-red-800 font-medium">Erreur</p>
+                        <p class="text-red-600 text-sm"><%= error %></p>
                     </div>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-            </div>
-        </div>
+            <% } %>
 
-        <!-- Messages d'alerte -->
-        <% if (message != null && !message.isEmpty()) { %>
-            <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-start animate-fade-in">
-                <i class="fas fa-check-circle text-green-500 mt-0.5 mr-3"></i>
-                <div>
-                    <p class="text-green-800 font-medium">Succès !</p>
-                    <p class="text-green-600 text-sm"><%= message %></p>
+            <!-- Liste des véhicules -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-slide-in">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800">
+                        <i class="fas fa-list mr-2 text-blue-500"></i>
+                        Liste des véhicules
+                    </h3>
+                    <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                        <%= totalVehicules %> véhicule(s)
+                    </span>
                 </div>
-                <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        <% } %>
 
-        <% if (error != null && !error.isEmpty()) { %>
-            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start animate-fade-in">
-                <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
-                <div>
-                    <p class="text-red-800 font-medium">Erreur</p>
-                    <p class="text-red-600 text-sm"><%= error %></p>
-                </div>
-                <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        <% } %>
-
-        <!-- Liste des véhicules -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-slide-in">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-list mr-2 text-blue-500"></i>
-                    Liste des véhicules
-                </h3>
-                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                    <%= totalVehicules %> véhicule(s)
-                </span>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacité</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carburant</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <% if (vehicules != null && !vehicules.isEmpty()) { 
-                            for (Vehicule v : vehicules) { 
-                        %>
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm font-medium text-gray-900">#<%= v.getId() %></span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 gradient-bg-light rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-car text-blue-600"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <p class="text-sm font-medium text-gray-900"><%= v.getReference() %></p>
-                                            <p class="text-xs text-gray-500">Référence unique</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-user text-gray-400 mr-2"></i>
-                                        <span class="text-sm text-gray-900"><%= v.getCapacite() %> passagers</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <% if (v.getTypeCarburant() != null) { 
-                                        String colorClass = "";
-                                        switch(v.getTypeCarburant().getLibelle().toLowerCase()) {
-                                            case "essence": colorClass = "bg-orange-100 text-orange-800"; break;
-                                            case "diesel": colorClass = "bg-blue-100 text-blue-800"; break;
-                                            case "électrique": colorClass = "bg-green-100 text-green-800"; break;
-                                            default: colorClass = "bg-gray-100 text-gray-800";
-                                        }
-                                    %>
-                                        <span class="px-2 py-1 text-xs font-medium <%= colorClass %> rounded-full">
-                                            <i class="fas fa-gas-pump mr-1"></i>
-                                            <%= v.getTypeCarburant().getLibelle() %>
-                                        </span>
-                                    <% } else { %>
-                                        <span class="text-sm text-gray-400">Non spécifié</span>
-                                    <% } %>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <button onclick="openEditModal(<%= v.getId() %>, '<%= v.getReference() %>', <%= v.getCapacite() %>, <%= v.getTypeCarburant() != null ? v.getTypeCarburant().getId() : "null" %>)" 
-                                            class="text-indigo-600 hover:text-indigo-900 mx-2 transition-colors">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form action="${pageContext.request.contextPath}/vehicules" method="post" class="inline">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="id" value="<%= v.getId() %>">
-                                        <button type="submit" 
-                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ? Cette action est irréversible.')"
-                                                class="text-red-600 hover:text-red-900 mx-2 transition-colors">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <% } } else { %>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <div class="bg-gray-100 p-3 rounded-full mb-4">
-                                            <i class="fas fa-car text-gray-400 text-4xl"></i>
-                                        </div>
-                                        <p class="text-gray-500 text-lg mb-2">Aucun véhicule trouvé</p>
-                                        <p class="text-gray-400 text-sm mb-4">Commencez par ajouter un nouveau véhicule</p>
-                                        <button onclick="openAddModal()" 
-                                                class="gradient-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-colors">
-                                            <i class="fas fa-plus-circle mr-2"></i>
-                                            Ajouter un véhicule
-                                        </button>
-                                    </div>
-                                </td>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacité</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carburant</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
-                        <% } %>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <% if (vehicules != null && !vehicules.isEmpty()) { 
+                                for (Vehicule v : vehicules) { 
+                            %>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="text-sm font-medium text-gray-900">#<%= v.getId() %></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 gradient-bg-light rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-car text-blue-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <p class="text-sm font-medium text-gray-900"><%= v.getReference() %></p>
+                                                <p class="text-xs text-gray-500">Référence unique</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-user text-gray-400 mr-2"></i>
+                                            <span class="text-sm text-gray-900"><%= v.getCapacite() %> passagers</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <% if (v.getTypeCarburant() != null) { 
+                                            String colorClass = "";
+                                            switch(v.getTypeCarburant().getLibelle().toLowerCase()) {
+                                                case "essence": colorClass = "bg-orange-100 text-orange-800"; break;
+                                                case "diesel": colorClass = "bg-blue-100 text-blue-800"; break;
+                                                case "électrique": colorClass = "bg-green-100 text-green-800"; break;
+                                                default: colorClass = "bg-gray-100 text-gray-800";
+                                            }
+                                        %>
+                                            <span class="px-2 py-1 text-xs font-medium <%= colorClass %> rounded-full">
+                                                <i class="fas fa-gas-pump mr-1"></i>
+                                                <%= v.getTypeCarburant().getLibelle() %>
+                                            </span>
+                                        <% } else { %>
+                                            <span class="text-sm text-gray-400">Non spécifié</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        <button onclick="openEditModal(<%= v.getId() %>, '<%= v.getReference() %>', <%= v.getCapacite() %>, <%= v.getTypeCarburant() != null ? v.getTypeCarburant().getId() : "null" %>)" 
+                                                class="text-indigo-600 hover:text-indigo-900 mx-2 transition-colors">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="${pageContext.request.contextPath}/vehicules" method="post" class="inline">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="<%= v.getId() %>">
+                                            <button type="submit" 
+                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ? Cette action est irréversible.')"
+                                                    class="text-red-600 hover:text-red-900 mx-2 transition-colors">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% } } else { %>
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <div class="bg-gray-100 p-3 rounded-full mb-4">
+                                                <i class="fas fa-car text-gray-400 text-4xl"></i>
+                                            </div>
+                                            <p class="text-gray-500 text-lg mb-2">Aucun véhicule trouvé</p>
+                                            <p class="text-gray-400 text-sm mb-4">Commencez par ajouter un nouveau véhicule</p>
+                                            <button onclick="openAddModal()" 
+                                                    class="gradient-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-colors">
+                                                <i class="fas fa-plus-circle mr-2"></i>
+                                                Ajouter un véhicule
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
