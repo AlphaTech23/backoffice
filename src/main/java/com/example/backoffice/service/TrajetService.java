@@ -33,6 +33,8 @@ public class TrajetService {
     }
 
     public Double getBetween(Hotel h1, Hotel h2, List<Distance> distances) {
+        if(h1.getCode().equals(h2.getCode())) return 0.;
+        
         for (Distance d : distances) {
             String from = d.getFromHotel().getCode(),
                     to = d.getToHotel().getCode();
@@ -191,6 +193,12 @@ public class TrajetService {
             Trajet dispo = getDisponible(reservation);
             Trajet create = creerTrajet(reservation);
             if (dispo == null || dispo.getPlacesRestantes() > create.getVehicule().getCapacite()) {
+                reservation.setTrajet(dispo);
+                reservationRepository.save(reservation);
+                return create;
+            } else if (dispo.getPlacesRestantes() == create.getVehicule().getCapacite()
+                    && create.getVehicule().getTypeCarburant().getCode().equalsIgnoreCase("D")
+                    && !dispo.getVehicule().getTypeCarburant().getCode().equalsIgnoreCase("D")) {
                 reservation.setTrajet(dispo);
                 reservationRepository.save(reservation);
                 return create;
