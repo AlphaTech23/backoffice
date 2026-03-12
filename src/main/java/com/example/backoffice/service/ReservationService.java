@@ -76,12 +76,13 @@ public class ReservationService {
         }
         
         Double vitesse = parametreRepository.getVitesseMoyenne();
+        LocalTime TA = parametreRepository.getTempsAttente();
         List<Distance> distances = distanceRepository.getAll();
         Hotel aeroport = hotelRepository.getAeroport();
         
         List<Trajet> trajets = new ArrayList<>();
         for (Reservation reservation : reservations) {
-            Trajet trajet = trajetService.trouverTrajet(reservation);
+            Trajet trajet = trajetService.trouverTrajet(reservation, TA);
             if(trajet != null) trajets.add(trajet);
         }
 
