@@ -1,5 +1,6 @@
 package com.example.backoffice.repository;
 
+import java.time.LocalTime;
 import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Parametre;
 
@@ -18,5 +19,12 @@ public class ParametreRepository {
 
         return vm != null && vm.getValeur() != null && !vm.getValeur().isEmpty() 
                 ? Double.parseDouble(vm.getValeur()) : null;
+    }
+
+    public LocalTime getTempsAttente() throws Exception {
+        String sql = "SELECT * FROM parametre WHERE cle = 'temps_attente'";
+        Parametre p = dao.get(sql, Parametre.class);
+        return p != null && p.getValeur() != null && !p.getValeur().isEmpty()
+                ? LocalTime.parse(p.getValeur()) : null;
     }
 }
