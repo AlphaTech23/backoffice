@@ -13,4 +13,4 @@ SMART DEPARTURE ADJUSTMENT
     - Modification de la fonction getByCapacite dans TrajetRepository
         Trajet getByCapacite(int capacite, LocalDateTime dateTime, LocalTime TA)
     - Modification de la fonction trouverTrajet dans TrajetService
-        Trajet trouverTrajet(Reservation reservation, List<Distance> distances, Hotel aeroport)
+        Trajet trouverTrajet(Reservation reservation, LocalTime TA)

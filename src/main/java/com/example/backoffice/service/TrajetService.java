@@ -156,19 +156,46 @@ public class TrajetService {
         trajetRepository.save(trajet);
     }
 
-    public Trajet trouverTrajet(Reservation reservation) throws Exception {
+    public Trajet trouverTrajet(Reservation reservation, LocalTime TA) throws Exception {
         try {
+
             Trajet dispo = trajetRepository.getByCapacite(
-                reservation.getNombrePassager(),
-                reservation.getDateArrivee());
+                    reservation.getNombrePassager(),
+                    reservation.getDateArrivee(),
+                    TA);
+
             if (dispo == null) {
                 Trajet create = creerTrajet(reservation);
-                if(create != null)  trajetReservationService.assigner(create, reservation);
+
+                if (create != null) {
+
+                    LocalTime heureReservation = reservation
+                            .getDateArrivee()
+                            .toLocalTime();
+
+                    if (create.getHeureDepart().isBefore(heureReservation)) {
+                        create.setHeureDepart(heureReservation);
+                    }
+
+                    trajetReservationService.assigner(create, reservation);
+                }
+
                 return create;
-            } 
+            }
+
             if (dispo != null) {
+
+                LocalTime heureReservation = reservation
+                        .getDateArrivee()
+                        .toLocalTime();
+
+                if (dispo.getHeureDepart().isBefore(heureReservation)) {
+                    dispo.setHeureDepart(heureReservation);
+                }
+
                 trajetReservationService.assigner(dispo, reservation);
             }
+
             return dispo;
 
         } catch (Exception e) {
