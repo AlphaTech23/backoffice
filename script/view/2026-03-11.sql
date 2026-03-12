@@ -12,7 +12,9 @@ SELECT
     v.id_type_carburant,
 
     COALESCE(SUM(r.nombre_passager),0) AS places_prises,
-    v.capacite - COALESCE(SUM(r.nombre_passager),0) AS places_restantes
+    v.capacite - COALESCE(SUM(r.nombre_passager),0) AS places_restantes,
+
+    MIN(r.date_arrivee) AS min_date_reservation
 
 FROM trajet t
 JOIN vehicule v ON t.id_vehicule = v.id
