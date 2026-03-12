@@ -63,7 +63,7 @@ xcopy "%PROJECT_CLASSES%" "%PROJECT_BUILD%\WEB-INF\classes" /E /I /Y >nul
 echo.
 echo === Creation du fichier WAR ===
 cd "%PROJECT_BUILD%"
-jar cf "%BUILD_DIR%\backoffice.war" *
+jar cf "%BUILD_DIR%\backoffice-5.war" *
 cd "%PROJECT_DIR%"
 
 echo WAR genere : %BUILD_DIR%\backoffice.war
