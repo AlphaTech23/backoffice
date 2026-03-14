@@ -136,7 +136,6 @@ public class DAO {
                         try {
                             mapField(obj, colName, value);
                         } catch (Exception e) {
-                            System.out.println(e.getMessage());
                         }
                     }
 
@@ -157,7 +156,6 @@ public class DAO {
             field.setAccessible(true);
             assignValue(obj, field, value);
         } catch (NoSuchFieldException ignored) {
-            System.out.println(ignored.getMessage());
         }
     }
 
@@ -218,7 +216,6 @@ public class DAO {
             try {
                 idValue = rs.getObject(idColumn);
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
                 continue;
             }
 

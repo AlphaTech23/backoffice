@@ -198,18 +198,9 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Message d'information -->
-                <div class="mt-6 bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-circle text-orange-500 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Liste des réservations -->
+            <!-- Liste des réserv ations -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-slide-in">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                     <h3 class="text-lg font-semibold text-gray-800">

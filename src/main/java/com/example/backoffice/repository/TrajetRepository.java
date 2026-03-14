@@ -8,10 +8,8 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 public class TrajetRepository {
@@ -105,25 +103,20 @@ public class TrajetRepository {
         }
     }
 
-    public Trajet getByCapacite(int capacite, LocalDateTime dateTime, LocalTime TA) throws Exception {
+    public Trajet getByCapacite(int capacite, LocalDateTime min, LocalDateTime max) throws Exception {
 
         String sql = """
                 SELECT *
-                FROM v_trajet vt
-                WHERE vt.places_restantes >= ?
-                    AND ? BETWEEN vt.min_date_reservation
-                             AND vt.min_date_reservation + (? * interval '1 minute')
-                ORDER BY id
-                LIMIT 1
+                    FROM v_trajet
+                    WHERE places_restantes >= ?
+                    AND (date_trajet + heure_depart) 
+                        BETWEEN ?
+                        AND ?
+                    ORDER BY id
+                    LIMIT 1;
                 """;
 
-        Timestamp sqlDateTime = Timestamp.valueOf(dateTime);
-
-        int minutes = TA.getHour() * 60 + TA.getMinute();
-
         return dao.get(sql, Trajet.class,
-                capacite,
-                sqlDateTime,
-                minutes);
+                        capacite, min, max);
     }
 }

@@ -7,7 +7,6 @@ import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
 import com.example.backoffice.model.TrajetReservation;
 import com.example.backoffice.dao.DAO;
-import com.example.backoffice.model.Distance;
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Vehicule;
 import com.example.backoffice.repository.TrajetRepository;
@@ -15,41 +14,27 @@ import com.example.backoffice.repository.TrajetRepository;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class TrajetService {
 
-    private TrajetRepository trajetRepository;
-    private VehiculeService vehiculeService;
-    private TrajetReservationService trajetReservationService;
+    private final TrajetRepository trajetRepository;
+    private final VehiculeService vehiculeService;
+    private final TrajetReservationService trajetReservationService;
+    private final DistanceService distanceService;
 
     public TrajetService(DAO dao) {
         this.trajetRepository = new TrajetRepository(dao);
         this.vehiculeService = new VehiculeService(dao);
         this.trajetReservationService = new TrajetReservationService(dao);
+        this.distanceService = new DistanceService(dao);
     }
 
     public List<Trajet> getByDate(LocalDate date) throws Exception {
         return trajetRepository.getByDate(date);
     }
 
-    public Double getBetween(Hotel h1, Hotel h2, List<Distance> distances) {
-        if (h1.getCode().equals(h2.getCode()))
-            return 0.;
-
-        for (Distance d : distances) {
-            String from = d.getFromHotel().getCode(),
-                    to = d.getToHotel().getCode();
-            if ((from.equalsIgnoreCase(h1.getCode())
-                    && to.equalsIgnoreCase(h2.getCode())) ||
-                    (from.equalsIgnoreCase(h2.getCode())
-                            && to.equalsIgnoreCase(h1.getCode()))) {
-                return d.getKilometre();
-            }
-        }
-        return 0.;
-    }
-
-    public double getDistance(Trajet trajet, List<Distance> distances, Hotel aeroport) throws Exception {
+    public double getDistance(Trajet trajet, Map<String, Double> distances, Hotel aeroport) throws Exception {
 
         List<TrajetReservation> trajetReservation = trajetReservationService.getByTrajet(trajet.getId(), false);
 
@@ -63,15 +48,15 @@ public class TrajetService {
             Hotel currentHotel = trajetReservation.get(i).getReservation().getHotel();
 
             if (i == 0) {
-                distance += getBetween(aeroport, currentHotel, distances);
+                distance += distanceService.getBetween(aeroport, currentHotel, distances);
             } else {
                 Hotel previousHotel = trajetReservation.get(i - 1).getReservation().getHotel();
-                distance += getBetween(previousHotel, currentHotel, distances);
+                distance += distanceService.getBetween(previousHotel, currentHotel, distances);
             }
         }
 
         Hotel lastHotel = trajetReservation.get(trajetReservation.size() - 1).getReservation().getHotel();
-        distance += getBetween(lastHotel, aeroport, distances);
+        distance += distanceService.getBetween(lastHotel, aeroport, distances);
 
         return distance;
     }
@@ -108,7 +93,7 @@ public class TrajetService {
         return trajet;
     }
 
-    public void ordonnerTrajet(Trajet trajet, List<Distance> distances, Hotel aeroport) throws Exception {
+    public void ordonnerTrajet(Trajet trajet, Map<String, Double> distances, Hotel aeroport) throws Exception {
 
         List<TrajetReservation> reservations = trajetReservationService.getByTrajet(trajet.getId(), true);
 
@@ -130,7 +115,7 @@ public class TrajetService {
 
             for (Integer i : nonTriees) {
 
-                double distance = getBetween(
+                double distance = distanceService.getBetween(
                         lieuActuel,
                         reservations.get(i).getReservation().getHotel(), distances);
 
@@ -156,45 +141,42 @@ public class TrajetService {
         trajetRepository.save(trajet);
     }
 
-    public Trajet trouverTrajet(Reservation reservation, LocalTime TA) throws Exception {
+    public void preparerTrajet(Trajet trajet, Map<String, Double> distances, Hotel aeroport, Double vitesse)
+            throws Exception {
+        ordonnerTrajet(trajet, distances, aeroport);
+
+        double distance = getDistance(trajet, distances, aeroport);
+        LocalTime duree = getDuree(distance, vitesse);
+        trajet.setDistance(distance);
+
+        LocalTime heureArrivee = trajet.getHeureDepart().plusHours(duree.getHour())
+                .plusMinutes(duree.getMinute());
+        trajet.setHeureRetour(heureArrivee);
+        save(trajet);
+    }
+
+    public Trajet assignerTrajet(Reservation reservation, LocalDateTime min, LocalDateTime max) throws Exception {
         try {
 
             Trajet dispo = trajetRepository.getByCapacite(
                     reservation.getNombrePassager(),
-                    reservation.getDateArrivee(),
-                    TA);
+                    min, max);
 
             if (dispo == null) {
                 Trajet create = creerTrajet(reservation);
-
-                if (create != null) {
-
-                    LocalTime heureReservation = reservation
-                            .getDateArrivee()
-                            .toLocalTime();
-
-                    if (create.getHeureDepart().isBefore(heureReservation)) {
-                        create.setHeureDepart(heureReservation);
-                    }
-
+                if (create != null)
                     trajetReservationService.assigner(create, reservation);
-                }
-
                 return create;
             }
 
-            if (dispo != null) {
+            LocalTime heureReservation = reservation
+                    .getDateArrivee()
+                    .toLocalTime();
 
-                LocalTime heureReservation = reservation
-                        .getDateArrivee()
-                        .toLocalTime();
-
-                if (dispo.getHeureDepart().isBefore(heureReservation)) {
-                    dispo.setHeureDepart(heureReservation);
-                }
-
-                trajetReservationService.assigner(dispo, reservation);
+            if (dispo.getHeureDepart().isBefore(heureReservation)) {
+                dispo.setHeureDepart(heureReservation);
             }
+            trajetReservationService.assigner(dispo, reservation);
 
             return dispo;
 

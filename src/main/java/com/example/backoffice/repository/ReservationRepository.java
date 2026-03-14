@@ -64,16 +64,23 @@ public class ReservationRepository {
     }
 
     public List<Reservation> getByDateArrivee(LocalDateTime dateArrivee) throws Exception {
-        return dao.getList("SELECT * FROM reservation WHERE date(date_arrive) = date(?)", Reservation.class,
+        String sql = """
+            SELECT * FROM reservation 
+            WHERE date(date_arrivee) = date(?) 
+            ORDER BY nombre_passager DESC
+        """;
+        return dao.getList(sql, Reservation.class,
                 Timestamp.valueOf(dateArrivee));
     }
 
     public List<Reservation> getNonAssigne(LocalDate date) throws Exception {
 
         String sql = """
-                    SELECT *
-                    FROM reservation
-                    WHERE id_trajet IS NULL
+                    SELECT r.*
+                    FROM reservation r
+                    LEFT JOIN trajet_reservation tr
+                    ON tr.id_reservation = r.id
+                    AND tr.id = NULL
                 """;
 
         if (date != null) {

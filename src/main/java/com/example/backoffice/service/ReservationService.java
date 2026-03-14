@@ -1,17 +1,17 @@
 package com.example.backoffice.service;
 
-import com.example.backoffice.repository.DistanceRepository;
 import com.example.backoffice.repository.HotelRepository;
 import com.example.backoffice.repository.ParametreRepository;
 import com.example.backoffice.repository.ReservationRepository;
-import com.example.backoffice.dao.DAO;
-import com.example.backoffice.model.Distance;
+import com.example.backoffice.util.Utils;
+import com.example.backoffice.dao.DAO; 
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -23,14 +23,14 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final TrajetService trajetService;
     private final ParametreRepository parametreRepository;
-    private final DistanceRepository distanceRepository;
+    private final DistanceService distanceService;
     private final HotelRepository hotelRepository;
 
     public ReservationService(DAO dao) {
         this.reservationRepository = new ReservationRepository(dao);
         this.trajetService = new TrajetService(dao);
         this.parametreRepository = new ParametreRepository(dao);
-        this.distanceRepository = new DistanceRepository(dao);
+        this.distanceService = new DistanceService(dao);
         this.hotelRepository = new HotelRepository(dao);
     }
 
@@ -68,35 +68,52 @@ public class ReservationService {
         return reservationRepository.getNonAssigne(date);
     }
 
-    public void assignation() throws Exception {
-        List<Reservation> reservations = reservationRepository.getAll();
+    public LocalDateTime getFirst(List<Reservation> reservations, LocalDateTime min) {
+        LocalDateTime first = null;
+        for (Reservation reservation : reservations) {
+            if (first == null || first.isAfter(reservation.getDateArrivee()))
+                if (min == null || min.isBefore(reservation.getDateArrivee()))
+                    first = reservation.getDateArrivee();
+        }
+        return first;
+    }
+
+    public void assignation(LocalDate date) throws Exception {
+        List<Reservation> reservations = reservationRepository.getByDateArrivee(date.atStartOfDay());
 
         if (reservations == null || reservations.isEmpty()) {
             throw new Exception("Aucune réservation à traiter");
         }
-        
+
         Double vitesse = parametreRepository.getVitesseMoyenne();
         LocalTime TA = parametreRepository.getTempsAttente();
-        List<Distance> distances = distanceRepository.getAll();
+        Map<String, Double> distances = distanceService.getDistanceMap();
         Hotel aeroport = hotelRepository.getAeroport();
-        
-        List<Trajet> trajets = new ArrayList<>();
-        for (Reservation reservation : reservations) {
-            Trajet trajet = trajetService.trouverTrajet(reservation, TA);
-            if(trajet != null) trajets.add(trajet);
-        }
+        LocalDateTime min = getFirst(reservations, null);
 
-        for (Trajet t : trajets) {
-            trajetService.ordonnerTrajet(t, distances, aeroport);
-            
-            double distance = trajetService.getDistance(t, distances, aeroport);
-            LocalTime duree = trajetService.getDuree(distance, vitesse);
-            t.setDistance(distance);
+        while (min != null) {
 
-            LocalTime heureArrivee = t.getHeureDepart().plusHours(duree.getHour())
-                    .plusMinutes(duree.getMinute());
-            t.setHeureRetour(heureArrivee);
-            trajetService.save(t);
+            LocalDateTime max = min.plusHours(TA.getHour())
+                    .plusMinutes(TA.getMinute())
+                    .plusSeconds(TA.getSecond());
+
+            Iterator<Reservation> iterator = reservations.iterator();
+
+            while (iterator.hasNext()) {
+                Reservation reservation = iterator.next();
+
+                if (!Utils.isBetween(reservation.getDateArrivee(), min, max))
+                    continue;
+
+                Trajet trajet = trajetService.assignerTrajet(reservation, min, max);
+
+                if (trajet != null) {
+                    iterator.remove();
+                    trajetService.preparerTrajet(trajet, distances, aeroport, vitesse);
+                }
+            }
+
+            min = getFirst(reservations, max);
         }
     }
 }
