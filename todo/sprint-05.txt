@@ -3,14 +3,18 @@ DEV : ETU003301, ETU003309
 
 features 1 : ETU003309
 WAIT TIME MANAGEMENT
-    - Modification vue v_trajet
-        Ajout de la colonne min_date_reservation => MIN(r.date_arrivee)
     - Création de la fonction dans ParametreRepository
         LocalTime getTempsAttente()
 
 features 2 : ETU003301
 SMART DEPARTURE ADJUSTMENT
     - Modification de la fonction getByCapacite dans TrajetRepository
-        Trajet getByCapacite(int capacite, LocalDateTime dateTime, LocalTime TA)
+        Trajet getByCapacite(int capacite, LocalDateTime min, LocalDateTime max)
     - Modification de la fonction trouverTrajet dans TrajetService
-        Trajet trouverTrajet(Reservation reservation, LocalTime TA)
+        Trajet trouverTrajet(Reservation reservation, LocalDateTime min, LocalDateTime max)
+    
+ FIX ASSIGNMENT
+    - Ajout de la fonction dans TrajetRepository et TrajetService
+        void deleteByDate(LocalDate date)
+    - Ajout de la fonction dans TrajetReservationRepository et TrajetReservationService
+        void deleteByDate(LocalDate date)

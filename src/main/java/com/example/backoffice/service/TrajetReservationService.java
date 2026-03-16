@@ -3,8 +3,6 @@ package com.example.backoffice.service;
 import java.util.List;
 
 import com.example.backoffice.dao.DAO;
-import com.example.backoffice.model.Reservation;
-import com.example.backoffice.model.Trajet;
 import com.example.backoffice.model.TrajetReservation;
 import com.example.backoffice.repository.TrajetReservationRepository;
 
@@ -21,11 +19,5 @@ public class TrajetReservationService {
 
     public void save(TrajetReservation trajet) throws Exception {
         trajetReservationRepository.save(trajet);
-    }
-
-    public TrajetReservation assigner(Trajet trajet, Reservation reservation) throws Exception {
-        TrajetReservation trajetReservation = new TrajetReservation(null, trajet, reservation, 1);
-        trajetReservationRepository.save(trajetReservation);
-        return trajetReservation;
     }
 }

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.backoffice.model.Hotel" %>
-<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.*" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 
 <!DOCTYPE html>
@@ -69,10 +69,6 @@
                     <span class="bg-white/20 px-3 py-1 rounded-full">
                         <i class="far fa-clock mr-1"></i>
                         <%= LocalDateTime.now().format(timeFormatter) %>
-                    </span>
-                    <span class="bg-orange-500 px-3 py-1 rounded-full">
-                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                        En attente
                     </span>
                 </div>
             </div>
@@ -195,6 +191,7 @@
                                         <i class="fas fa-calendar text-gray-400"></i>
                                     </div>
                                     <input type="date" 
+                                        value="<%= LocalDate.now() %>"
                                         id="dateArrivee"
                                         class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                                         required>
@@ -285,20 +282,6 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Pied de page avec informations -->
-            <div class="mt-6 text-center text-white/80 text-sm">
-                <div class="flex items-center justify-center space-x-4">
-                    <span><i class="fas fa-shield-alt mr-1"></i> Paiement sécurisé</span>
-                    <span>•</span>
-                    <span><i class="fas fa-lock mr-1"></i> Données confidentielles</span>
-                    <span>•</span>
-                    <span><i class="fas fa-clock mr-1"></i> Confirmation immédiate</span>
-                </div>
-                <p class="mt-2 text-white/60 text-xs">
-                    Les champs marqués d'un astérisque (*) sont obligatoires
-                </p>
-            </div>
         </div>
     </main>
 
@@ -377,13 +360,6 @@
                     e.preventDefault();
                     alert('Veuillez sélectionner une date et une heure d\'arrivée.');
                     return;
-                }
-
-                // Vérifier que la date n'est pas dans le passé
-                const selectedDate = new Date(hiddenInput.value);
-                if (selectedDate < new Date()) {
-                    e.preventDefault();
-                    alert('La date d\'arrivée ne peut pas être dans le passé.');
                 }
             });
         });
