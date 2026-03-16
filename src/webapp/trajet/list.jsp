@@ -2,7 +2,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.backoffice.dto.TrajetDTO" %>
 <%@ page import="com.example.backoffice.model.*" %>
-<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.*" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 
 <%
@@ -138,7 +138,7 @@
                             <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             <input type="date" 
                                 name="date" 
-                                value="<%= date != null ? date : "" %>"
+                                value="<%= date != null ? date : LocalDate.now() %>"
                                 class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                         </div>
                         <button type="submit" 
@@ -203,9 +203,12 @@
                         <i class="fas fa-list mr-2 text-blue-500"></i>
                         Liste des trajets
                     </h3>
-                    <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                        <%= totalTrajets %> trajet(s)
-                    </span>
+                    <%if(date != null) { %>
+                        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                            <i class="far fa-calendar mr-1"></i>
+                            <%= date %>
+                        </span>
+                    <% } %>
                 </div>
 
                 <div class="overflow-x-auto">

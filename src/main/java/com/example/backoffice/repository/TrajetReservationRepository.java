@@ -55,12 +55,13 @@ public class TrajetReservationRepository {
                         WHERE id = ?
                     """;
 
-            dao.executeUpdate(
+            Integer id = dao.executeUpdate(
                     sql,
                     trajetReservation.getTrajet().getId(),
                     trajetReservation.getReservation().getId(),
                     trajetReservation.getOrdre(),
                     trajetReservation.getId());
+            if(id > 0) trajetReservation.setId(id); 
         }
     }
 }

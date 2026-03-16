@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.*" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 
 <!DOCTYPE html>
@@ -82,7 +82,7 @@
     <%
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         String message = (String) request.getAttribute("message");
-        String error = (String) request.getAttribute("error");
+        String error = (String) request.getAttribute("erreur");
     %>
 
     <!-- Navigation -->
@@ -119,55 +119,113 @@
                 </div>
             </div>
 
-            <!-- Messages d'alerte -->
-            <% if (message != null && !message.isEmpty()) { %>
-                <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-start animate-fade-in">
-                    <i class="fas fa-check-circle text-green-500 mt-0.5 mr-3"></i>
-                    <div>
-                        <p class="text-green-800 font-medium">Succès !</p>
-                        <p class="text-green-600 text-sm"><%= message %></p>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            <% } %>
-
-            <% if (error != null && !error.isEmpty()) { %>
-                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start animate-fade-in">
-                    <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
-                    <div>
-                        <p class="text-red-800 font-medium">Erreur</p>
-                        <p class="text-red-600 text-sm"><%= error %></p>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            <% } %>
-
             <!-- Carte principale -->
             <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-slide-in">
                 <!-- Corps de la carte -->
-                <div class="p-8">
-                    <!-- Formulaire d'assignation -->
-                    <form action="assigner" method="post" id="assignmentForm" class="space-y-6">
-                        <!-- Zone d'action principale -->
-                        <div class="flex flex-col items-center space-y-4">
-                            <button type="submit" 
-                                    id="submitBtn"
-                                    class="gradient-success text-white px-12 py-4 rounded-xl font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 w-full md:w-auto min-w-[300px]">
-                                <i class="fas fa-play text-xl" id="buttonIcon"></i>
-                                <span id="buttonText">Lancer l'assignation automatique</span>
+                <div class="p-20">
+                    <!-- Messages d'alerte -->
+                    <% if (message != null && !message.isEmpty()) { %>
+                        <div class="alert mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-start animate-fade-in">
+                            <i class="fas fa-check-circle text-green-500 mt-0.5 mr-3"></i>
+                            <div>
+                                <p class="text-green-800 font-medium">Succès !</p>
+                                <p class="text-green-600 text-sm"><%= message %></p>
+                            </div>
+                            <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
+                                <i class="fas fa-times"></i>
                             </button>
+                        </div>
+                    <% } %>
+
+                    <% if (error != null && !error.isEmpty()) { %>
+                        <div class="alert mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start animate-fade-in">
+                            <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
+                            <div>
+                                <p class="text-red-800 font-medium">Erreur</p>
+                                <p class="text-red-600 text-sm"><%= error %></p>
+                            </div>
+                            <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    <% } %>
+
+                    <!-- Formulaire d'assignation -->
+                    <form action="assigner" method="post" id="assignmentForm" class="space-y-8">
+                        <div class="relative group mb-8">
+                            <label class="block text-sm font-medium text-gray-600 mb-2 ml-1">
+                                Date de planification
+                            </label>
+
+                            <div class="relative">
+                                <input type="date"
+                                    value="<%= LocalDate.now() %>"
+                                    name="date"
+                                    required
+                                    class="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl 
+                                    bg-white text-gray-700
+                                    focus:border-blue-400 focus:ring-4 focus:ring-blue-100
+                                    hover:border-gray-300
+                                    transition-all duration-200 outline-none
+                                    shadow-sm hover:shadow">
+
+                                <!-- Icône avec animation -->
+                                <div class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <i class="fas fa-calendar-alt text-gray-400 group-hover:text-blue-400 group-focus-within:text-blue-500 transition-all duration-200 text-lg"></i>
+                                </div>
+                            </div>
+
+                            <!-- Message d'aide subtil -->
+                            <p class="text-xs text-gray-400 mt-2 ml-1">
+                                <i class="far fa-clock mr-1"></i>
+                                Sélectionnez la date d'assignation souhaitée
+                            </p>
+                        </div>
+
+                        <!-- Séparateur élégant -->
+                        <div class="relative my-6">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-200"></div>
+                            </div>
+                            <div class="relative flex justify-center">
+                                <span class="bg-white px-4 text-xs text-gray-400">Action principale</span>
+                            </div>
+                        </div>
+
+                        <!-- Bouton d'action spectaculaire -->
+                        <button type="submit" 
+                                id="submitBtn"
+                                class="relative w-full bg-gradient-to-r from-green-500 to-emerald-600 
+                                text-white px-8 py-5 rounded-xl font-semibold 
+                                hover:from-green-600 hover:to-emerald-700 
+                                transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl
+                                shadow-lg shadow-green-200
+                                flex items-center justify-center space-x-3
+                                group overflow-hidden">
+
+                            <!-- Effet de brillance au survol -->
+                            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                             
-                            <p class="text-xs text-gray-500 flex items-center">
-                                <i class="fas fa-info-circle mr-1 text-blue-500"></i>
-                                Cette opération peut prendre quelques secondes
+                            <!-- Icône avec animation -->
+                            <div class="relative">
+                                <i class="fas fa-play text-xl group-hover:animate-pulse" id="buttonIcon"></i>
+                            </div>
+                            
+                            <!-- Texte -->
+                            <span class="relative text-lg" id="buttonText">Lancer l'assignation automatique</span>
+                        </button>
+
+                        <!-- Message d'information amélioré -->
+                        <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                            <p class="text-xs text-blue-700 flex items-center">
+                                <i class="fas fa-info-circle mr-2 text-blue-500 text-sm"></i>
+                                <span class="flex-1">
+                                    Cette opération peut prendre quelques secondes. 
+                                    <span class="font-semibold block sm:inline">Les conducteurs disponibles seront assignés automatiquement.</span>
+                                </span>
                             </p>
                         </div>
                     </form>
-
                     <!-- Informations complémentaires -->
                     <div class="mt-8 pt-6 border-t border-gray-200">
                         <div class="flex items-start space-x-4 text-sm text-gray-600">
@@ -252,14 +310,13 @@
         });
 
         // Gestion des messages qui disparaissent automatiquement
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50');
-            alerts.forEach(alert => {
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
                 alert.style.transition = 'opacity 0.5s ease';
                 alert.style.opacity = '0';
                 setTimeout(() => alert.remove(), 500);
             });
-        }, 5000);
+        }, 1000);
     </script>
 
     <!-- Footer -->

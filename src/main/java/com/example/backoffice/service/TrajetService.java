@@ -7,7 +7,6 @@ import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
 import com.example.backoffice.model.TrajetReservation;
 import com.example.backoffice.dao.DAO;
-import com.example.backoffice.model.Distance;
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Vehicule;
 import com.example.backoffice.repository.TrajetRepository;
@@ -15,65 +14,28 @@ import com.example.backoffice.repository.TrajetRepository;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class TrajetService {
 
-    private TrajetRepository trajetRepository;
-    private VehiculeService vehiculeService;
-    private TrajetReservationService trajetReservationService;
+    private final TrajetRepository trajetRepository;
+    private final VehiculeService vehiculeService;
+    private final TrajetReservationService trajetReservationService;
+    private final DistanceService distanceService;
 
     public TrajetService(DAO dao) {
         this.trajetRepository = new TrajetRepository(dao);
         this.vehiculeService = new VehiculeService(dao);
         this.trajetReservationService = new TrajetReservationService(dao);
+        this.distanceService = new DistanceService(dao);
     }
 
     public List<Trajet> getByDate(LocalDate date) throws Exception {
         return trajetRepository.getByDate(date);
     }
 
-    public Double getBetween(Hotel h1, Hotel h2, List<Distance> distances) {
-        if (h1.getCode().equals(h2.getCode()))
-            return 0.;
-
-        for (Distance d : distances) {
-            String from = d.getFromHotel().getCode(),
-                    to = d.getToHotel().getCode();
-            if ((from.equalsIgnoreCase(h1.getCode())
-                    && to.equalsIgnoreCase(h2.getCode())) ||
-                    (from.equalsIgnoreCase(h2.getCode())
-                            && to.equalsIgnoreCase(h1.getCode()))) {
-                return d.getKilometre();
-            }
-        }
-        return 0.;
-    }
-
-    public double getDistance(Trajet trajet, List<Distance> distances, Hotel aeroport) throws Exception {
-
-        List<TrajetReservation> trajetReservation = trajetReservationService.getByTrajet(trajet.getId(), false);
-
-        if (trajetReservation == null || trajetReservation.isEmpty() || distances == null || distances.isEmpty()) {
-            return 0.0;
-        }
-
-        double distance = 0.0;
-
-        for (int i = 0; i < trajetReservation.size(); i++) {
-            Hotel currentHotel = trajetReservation.get(i).getReservation().getHotel();
-
-            if (i == 0) {
-                distance += getBetween(aeroport, currentHotel, distances);
-            } else {
-                Hotel previousHotel = trajetReservation.get(i - 1).getReservation().getHotel();
-                distance += getBetween(previousHotel, currentHotel, distances);
-            }
-        }
-
-        Hotel lastHotel = trajetReservation.get(trajetReservation.size() - 1).getReservation().getHotel();
-        distance += getBetween(lastHotel, aeroport, distances);
-
-        return distance;
+    public void deleteByDate(LocalDate date) throws Exception {
+        trajetRepository.deleteByDate(date);
     }
 
     public LocalTime getDuree(double distance, Double vitesse) throws Exception {
@@ -102,105 +64,90 @@ public class TrajetService {
         LocalDateTime dateArrivee = reservation.getDateArrivee();
         trajet.setDateTrajet(dateArrivee.toLocalDate());
         trajet.setHeureDepart(dateArrivee.toLocalTime());
+        trajet.setPlacesRestantes(vehicule.getCapacite());
 
         trajetRepository.save(trajet);
 
         return trajet;
     }
 
-    public void ordonnerTrajet(Trajet trajet, List<Distance> distances, Hotel aeroport) throws Exception {
+    public Double ordonnerTrajet(List<TrajetReservation> trajetReservations, Map<String, Double> distances,
+            Hotel aeroport)
+            throws Exception {
 
-        List<TrajetReservation> reservations = trajetReservationService.getByTrajet(trajet.getId(), true);
-
-        if (reservations == null || reservations.isEmpty()) {
-            return;
+        if (trajetReservations == null || trajetReservations.isEmpty()) {
+            return 0.;
         }
 
         List<Integer> nonTriees = new ArrayList<>();
-        for (int i = 0; i < reservations.size(); i++) {
+        for (int i = 0; i < trajetReservations.size(); i++) {
             nonTriees.add(i);
         }
 
+        double totalDistance = 0.;
         Hotel lieuActuel = aeroport;
 
-        for (int tri = 1; tri <= reservations.size(); tri++) {
+        for (int ordre = 1; ordre <= trajetReservations.size(); ordre++) {
+            double minDistance = Double.MAX_VALUE;
+            int indiceMin = -1;
 
-            double min = Double.MAX_VALUE;
-            int indice = -1;
+            for (int idx : nonTriees) {
+                double distance = distanceService.getBetween(lieuActuel,
+                        trajetReservations.get(idx).getReservation().getHotel(),
+                        distances);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    indiceMin = idx;
+                } else if (distance == minDistance) {
+                    Hotel hotelCourant = trajetReservations.get(idx).getReservation().getHotel();
+                    Hotel hotelMin = trajetReservations.get(indiceMin).getReservation().getHotel();
 
-            for (Integer i : nonTriees) {
-
-                double distance = getBetween(
-                        lieuActuel,
-                        reservations.get(i).getReservation().getHotel(), distances);
-
-                if (distance < min) {
-                    min = distance;
-                    indice = i;
+                    if (hotelCourant.getNom().compareToIgnoreCase(hotelMin.getNom()) < 0) {
+                        indiceMin = idx;
+                    }
                 }
             }
 
-            if (indice != -1) {
-
-                nonTriees.remove(Integer.valueOf(indice));
-
-                TrajetReservation tr = reservations.get(indice);
-                tr.setOrdre(tri);
+            if (indiceMin != -1) {
+                TrajetReservation tr = trajetReservations.get(indiceMin);
+                tr.setOrdre(ordre);
                 trajetReservationService.save(tr);
+
+                totalDistance += minDistance;
+
                 lieuActuel = tr.getReservation().getHotel();
+                nonTriees.remove(Integer.valueOf(indiceMin));
             }
         }
+
+        return totalDistance + distanceService.getBetween(aeroport, lieuActuel, distances);
     }
 
-    public void save(Trajet trajet) throws Exception {
+    public void preparerTrajet(Trajet trajet, List<TrajetReservation> trajetReservations, Map<String, Double> distances,
+            Hotel aeroport, Double vitesse)
+            throws Exception {
+        double distance = ordonnerTrajet(trajetReservations, distances, aeroport);
+        trajet.setDistance(distance);
+
+        LocalTime duree = getDuree(distance, vitesse);
+        LocalTime heureArrivee = trajet.getHeureDepart().plusHours(duree.getHour())
+                .plusMinutes(duree.getMinute());
+        trajet.setHeureRetour(heureArrivee);
+
         trajetRepository.save(trajet);
     }
 
-    public Trajet trouverTrajet(Reservation reservation, LocalTime TA) throws Exception {
-        try {
+    public TrajetReservation assigner(Trajet trajet, Reservation reservation) throws Exception {
+        Integer placesRestantes = trajet.getPlacesRestantes(),
+                nombrePassager = reservation.getNombrePassager();
 
-            Trajet dispo = trajetRepository.getByCapacite(
-                    reservation.getNombrePassager(),
-                    reservation.getDateArrivee(),
-                    TA);
-
-            if (dispo == null) {
-                Trajet create = creerTrajet(reservation);
-
-                if (create != null) {
-
-                    LocalTime heureReservation = reservation
-                            .getDateArrivee()
-                            .toLocalTime();
-
-                    if (create.getHeureDepart().isBefore(heureReservation)) {
-                        create.setHeureDepart(heureReservation);
-                    }
-
-                    trajetReservationService.assigner(create, reservation);
-                }
-
-                return create;
-            }
-
-            if (dispo != null) {
-
-                LocalTime heureReservation = reservation
-                        .getDateArrivee()
-                        .toLocalTime();
-
-                if (dispo.getHeureDepart().isBefore(heureReservation)) {
-                    dispo.setHeureDepart(heureReservation);
-                }
-
-                trajetReservationService.assigner(dispo, reservation);
-            }
-
-            return dispo;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new IllegalArgumentException(e);
+        if (placesRestantes >= nombrePassager) {
+            LocalTime heureReservation = reservation.getDateArrivee().toLocalTime();
+            if (heureReservation.isAfter(trajet.getHeureDepart()))
+                trajet.setHeureDepart(heureReservation);
+            trajet.setPlacesRestantes(placesRestantes - nombrePassager);
+            return new TrajetReservation(null, trajet, reservation, 1);
         }
+        return null;
     }
 }
