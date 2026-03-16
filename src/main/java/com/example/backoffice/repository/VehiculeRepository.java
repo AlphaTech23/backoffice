@@ -44,7 +44,10 @@ public class VehiculeRepository {
                             FROM trajet t
                             WHERE t.id_vehicule = v.id
                             AND t.date_trajet = ?
-                            AND ? BETWEEN t.heure_depart AND t.heure_retour
+                            AND (
+                                t.heure_retour IS NULL
+                                OR ? BETWEEN t.heure_depart AND t.heure_retour
+                            )
                         )
                         ORDER BY v.capacite;
                 """;

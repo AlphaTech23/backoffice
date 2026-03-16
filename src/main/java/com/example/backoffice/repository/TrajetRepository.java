@@ -4,9 +4,6 @@ import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Trajet;
 
 import java.sql.Date;
-import java.sql.Statement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,17 +18,11 @@ public class TrajetRepository {
 
     public List<Trajet> getByDate(LocalDate date) throws Exception {
 
-        String sql = """
-                    SELECT t.*
-                        FROM trajet t
-                        LEFT JOIN trajet_reservation tr ON tr.id_trajet = t.id
-                        LEFT JOIN reservation r ON r.id = tr.id_reservation
-                        WHERE t.date_trajet = ?
-                        GROUP BY t.id, t.date_trajet, t.heure_depart,
-                                    t.heure_retour, t.distance, t.id_vehicule
-                        ORDER BY COALESCE(SUM(r.nombre_passager), 0);
-                """;
+        String sql = "SELECT * FROM trajet";
+        
+        if(date == null) return dao.getList(sql, Trajet.class);
 
+        sql += " WHERE date_trajet = ?";
         return dao.getList(sql, Trajet.class, date);
     }
 
@@ -47,7 +38,6 @@ public class TrajetRepository {
                     ORDER BY heure_depart
                 """;
 
-        // extraire la date et l'heure
         Date sqlDate = Date.valueOf(dateTime.toLocalDate());
         Time sqlTime = Time.valueOf(dateTime.toLocalTime());
 
@@ -57,7 +47,6 @@ public class TrajetRepository {
     public void save(Trajet trajet) throws Exception {
 
         if (trajet.getId() != null) {
-            // UPDATE
             String sql = """
                         UPDATE trajet
                         SET date_trajet = ?,
@@ -77,29 +66,19 @@ public class TrajetRepository {
                     trajet.getId());
 
         } else {
-            // INSERT
             String sql = """
-                        INSERT INTO trajet(date_trajet, heure_depart, heure_retour, id_vehicule, distance)
+                        INSERT INTO trajet(id_vehicule, distance, date_trajet, heure_depart, heure_retour)
                         VALUES (?, ?, ?, ?, ?)
                     """;
 
-            PreparedStatement ps = dao.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            Integer id = dao.executeUpdate(sql, trajet.getVehicule().getId(),
+                    trajet.getDistance() != null ? trajet.getDistance() : 0,
+                    trajet.getDateTrajet() != null ? Date.valueOf(trajet.getDateTrajet()) : null,
+                    trajet.getHeureDepart() != null ? Time.valueOf(trajet.getHeureDepart()) : null,
+                    trajet.getHeureRetour() != null ? Time.valueOf(trajet.getHeureRetour()) : null);
 
-            ps.setDate(1, trajet.getDateTrajet() != null ? Date.valueOf(trajet.getDateTrajet()) : null);
-            ps.setTime(2, trajet.getHeureDepart() != null ? Time.valueOf(trajet.getHeureDepart()) : null);
-            ps.setTime(3, trajet.getHeureRetour() != null ? Time.valueOf(trajet.getHeureRetour()) : null);
-            ps.setInt(4, trajet.getVehicule().getId());
-            ps.setDouble(5, trajet.getDistance() != null ? trajet.getDistance() : 0);
-
-            ps.executeUpdate();
-
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                trajet.setId(rs.getInt(1));
-            }
-
-            rs.close();
-            ps.close();
+            if (id > 0)
+                trajet.setId(id);
         }
     }
 
@@ -109,7 +88,7 @@ public class TrajetRepository {
                 SELECT *
                     FROM v_trajet
                     WHERE places_restantes >= ?
-                    AND (date_trajet + heure_depart) 
+                    AND (date_trajet + heure_depart)
                         BETWEEN ?
                         AND ?
                     ORDER BY id
@@ -117,6 +96,11 @@ public class TrajetRepository {
                 """;
 
         return dao.get(sql, Trajet.class,
-                        capacite, min, max);
+                capacite, min, max);
+    }
+
+    public void deleteByDate(LocalDate date) throws Exception {
+        String sql = "DELETE FROM trajet WHERE date_trajet = ?";
+        dao.executeUpdate(sql, date);
     }
 }

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.*" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 
 <!DOCTYPE html>
@@ -159,6 +159,7 @@
 
                             <div class="relative">
                                 <input type="date"
+                                    value="<%= LocalDate.now() %>"
                                     name="date"
                                     required
                                     class="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl 

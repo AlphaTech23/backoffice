@@ -2,7 +2,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.backoffice.model.Reservation" %>
 <%@ page import="com.example.backoffice.model.Hotel" %>
-<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.*" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 
 <%
@@ -138,7 +138,7 @@
                             <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             <input type="date" 
                                 name="date" 
-                                value="<%= date != null ? date : "" %>"
+                                value="<%= date != null ? date : LocalDate.now() %>"
                                 class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors">
                         </div>
                         <button type="submit" 
@@ -208,10 +208,12 @@
                         Liste des réservations non assignées
                     </h3>
                     <div class="flex items-center space-x-3">
-                        <span class="bg-orange-100 text-orange-800 text-sm font-medium px-3 py-1 rounded-full">
-                            <i class="fas fa-ticket-alt mr-1"></i>
-                            <%= totalReservations %> réservation(s)
-                        </span>
+                        <% if(date != null) { %>
+                            <span class="bg-orange-100 text-orange-800 text-sm font-medium px-3 py-1 rounded-full">
+                                <i class="fas fa-ticket-alt mr-1"></i>
+                                <%= date %>
+                            </span>
+                        <% } %>
                         <% if (totalReservations > 0) { %>
                             <button onclick="exportTableToCSV()" class="text-gray-500 hover:text-gray-700 transition-colors" title="Exporter en CSV">
                                 <i class="fas fa-download"></i>
@@ -313,7 +315,7 @@
                                                     "Toutes les réservations sont assignées à des trajets" %>
                                             </p>
                                             <% if (date != null && !date.isEmpty()) { %>
-                                                <a href="<%=request.getContextPath()%>/reservation/non-assigne" 
+                                                <a href="<%=request.getContextPath()%>/reservations/non-assigner" 
                                                 class="gradient-bg-orange text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-colors">
                                                     <i class="fas fa-times mr-2"></i>
                                                     Réinitialiser le filtre

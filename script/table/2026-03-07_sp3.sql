@@ -26,4 +26,4 @@ CREATE TABLE trajet(
    distance NUMERIC(15, 2) NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(id_vehicule) REFERENCES vehicule(id)
-);
+); 

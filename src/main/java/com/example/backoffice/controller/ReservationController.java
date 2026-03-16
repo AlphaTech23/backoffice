@@ -96,6 +96,7 @@ public class ReservationController {
 
         try {
             dao.connect();
+            if(date == null) 
             mv.addAttribute("reservations", reservationService.getNonAssigne(date));
             mv.addAttribute("date", date);
         } catch (Exception e) {

@@ -60,7 +60,7 @@ public class TrajetController {
         ModelView mv = new ModelView("/trajet/planification.jsp");
         if("true".equals(s))
             mv.addAttribute("message", "Planification effecutee avec succes");
-        else
+        else if(s != null)
             mv.addAttribute("erreur", "Une erreur s'est produite durant la planification");
         return mv;
     }

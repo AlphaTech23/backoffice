@@ -10,8 +10,7 @@ import java.util.*;
 
 public class DAO {
 
-    private final String URL = "jdbc:postgresql://localhost:5432/AeroAssign5";
-    // private final String URL = "jdbc:postgresql://localhost:5432/AeroAssign";
+    private final String URL = "jdbc:postgresql://localhost:5432/AeroAssign";
     private final String USER = "postgres";
     private final String PASSWORD = " ";
     private Connection connection;
@@ -33,7 +32,8 @@ public class DAO {
     }
 
     public void close() throws Exception {
-        if(connection != null) connection.close();
+        if (connection != null)
+            connection.close();
     }
 
     private String sqlToJava(String columnName) {
@@ -64,14 +64,22 @@ public class DAO {
         return sb.toString();
     }
 
-    public int executeUpdate(String sql, Object... params) throws SQLException {
+    public int executeUpdate(String sql, Object... params) throws Exception {
         try (PreparedStatement stmt = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             for (int i = 0; i < params.length; i++) {
-                stmt.setObject(i + 1, params[i]);
+                assign(i + 1, stmt, params[i]);
             }
 
-            return stmt.executeUpdate();
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    return -1;
+                }
+            }
         }
     }
 
@@ -80,7 +88,7 @@ public class DAO {
             try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
 
                 for (int i = 0; i < params.length; i++) {
-                    stmt.setObject(i + 1, params[i]);
+                    assign(i+ 1, stmt, params[i]);
                 }
 
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -109,17 +117,7 @@ public class DAO {
         try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
 
             for (int i = 0; i < params.length; i++) {
-                Object param = params[i];
-
-                if (param instanceof java.time.LocalDate) {
-                    stmt.setDate(i + 1, Date.valueOf((java.time.LocalDate) param));
-                } else if (param instanceof java.time.LocalTime) {
-                    stmt.setTime(i + 1, Time.valueOf((java.time.LocalTime) param));
-                } else if (param instanceof java.time.LocalDateTime) {
-                    stmt.setTimestamp(i + 1, Timestamp.valueOf((java.time.LocalDateTime) param));
-                } else {
-                    stmt.setObject(i + 1, param);
-                }
+                assign(i + 1, stmt, params[i]);
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -149,7 +147,7 @@ public class DAO {
         return resultList;
     }
 
-    private void  mapField(Object obj, String columnName, Object value) throws Exception {
+    private void mapField(Object obj, String columnName, Object value) throws Exception {
         String fieldName = sqlToJava(columnName);
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
@@ -189,6 +187,21 @@ public class DAO {
 
         else {
             field.set(obj, value);
+        }
+    }
+
+    private void assign(Integer index, PreparedStatement stmt, Object param) throws Exception {
+        if (param == null)
+            stmt.setObject(index, null);;
+
+        if (param instanceof java.time.LocalDate) {
+            stmt.setDate(index, Date.valueOf((java.time.LocalDate) param));
+        } else if (param instanceof java.time.LocalTime) {
+            stmt.setTime(index, Time.valueOf((java.time.LocalTime) param));
+        } else if (param instanceof java.time.LocalDateTime) {
+            stmt.setTimestamp(index, Timestamp.valueOf((java.time.LocalDateTime) param));
+        } else {
+            stmt.setObject(index, param);
         }
     }
 
