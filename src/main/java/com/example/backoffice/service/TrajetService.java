@@ -52,8 +52,8 @@ public class TrajetService {
         return LocalTime.of(heures % 24, minutes % 60);
     }
 
-    public Trajet creerTrajet(Reservation reservation) throws Exception {
-        Vehicule vehicule = vehiculeService.getDisponible(reservation);
+    public Trajet creerTrajet(Reservation reservation, LocalDateTime windowEnd, Map<String, Integer> tripCount) throws Exception {
+        Vehicule vehicule = vehiculeService.getDisponible(reservation, windowEnd, tripCount);
 
         if (vehicule == null) {
             return null;

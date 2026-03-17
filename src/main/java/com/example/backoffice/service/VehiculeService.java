@@ -6,7 +6,9 @@ import com.example.backoffice.model.TypeCarburant;
 import com.example.backoffice.model.Vehicule;
 import com.example.backoffice.repository.VehiculeRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class VehiculeService {
@@ -39,29 +41,41 @@ public class VehiculeService {
         return vehiculeRepository.getAll();
     }
 
-    public Vehicule getDisponible(Reservation reservation) throws Exception {
+    public Vehicule getDisponible(Reservation reservation, LocalDateTime windowEnd, Map<String, Integer> tripCount)
+            throws Exception {
         List<Vehicule> vehicules = vehiculeRepository.getByCapacite(
-            reservation.getNombrePassager(),
-            reservation.getDateArrivee()
-        );
+                reservation.getNombrePassager(),
+                reservation.getDateArrivee(),
+                windowEnd);
         if (vehicules == null || vehicules.isEmpty()) {
             return null;
         }
-        
+
         Vehicule disponible = null;
         int min = Integer.MAX_VALUE;
+        int minCount = Integer.MAX_VALUE;
 
         for (Vehicule v : vehicules) {
-            if(v.getCapacite() > min) break;
-            if(min > v.getCapacite()) {
+            int count = tripCount.getOrDefault(v.getReference(), 0);
+            if (v.getCapacite() > min)
+                break;
+            if (min > v.getCapacite()) {
                 min = v.getCapacite();
+                minCount = count;
                 disponible = v;
-            } else if (min == v.getCapacite() && "D".equalsIgnoreCase(v.getTypeCarburant().getCode())) {
-                disponible = v;
+            } else if (min == v.getCapacite()) {
+                if (minCount > count) {
+                    minCount = count;
+                    disponible = v;
+                } else if (minCount == count
+                        && "D".equalsIgnoreCase(v.getTypeCarburant().getCode())) {
+                    disponible = v;
+                }
             }
         }
 
-        if(disponible != null) return disponible;
+        if (disponible != null)
+            return disponible;
         Random random = new Random();
         return vehicules.get(random.nextInt(vehicules.size()));
     }

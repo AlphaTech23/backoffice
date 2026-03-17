@@ -33,7 +33,7 @@ public class VehiculeRepository {
         return dao.getList("SELECT * FROM vehicule", Vehicule.class);
     }
 
-    public List<Vehicule> getByCapacite(int capacite, LocalDateTime date) throws Exception {
+    public List<Vehicule> getByCapacite(int capacite, LocalDateTime reservationDate, LocalDateTime date) throws Exception {
 
         String sql = """
                     SELECT *
@@ -46,10 +46,11 @@ public class VehiculeRepository {
                             AND t.date_trajet = ?
                             AND (
                                 t.heure_retour IS NULL
-                                OR ? BETWEEN t.heure_depart AND t.heure_retour
+                                OR (? >= t.heure_depart AND ? < t.heure_retour)
+                                OR (? >= t.heure_depart AND ? < t.heure_retour)
                             )
                         )
-                        ORDER BY v.capacite;
+                        ORDER BY v.capacite
                 """;
 
         return dao.getList(
@@ -57,6 +58,9 @@ public class VehiculeRepository {
                 Vehicule.class,
                 capacite,
                 Date.valueOf(date.toLocalDate()),
-                Time.valueOf(date.toLocalTime()));
+                Time.valueOf(date.toLocalTime()),
+                Time.valueOf(date.toLocalTime()),
+                Time.valueOf(reservationDate.toLocalTime()),
+                Time.valueOf(reservationDate.toLocalTime()));
     }
 }

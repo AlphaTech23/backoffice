@@ -6,12 +6,14 @@ import com.example.backoffice.repository.ReservationRepository;
 import com.example.backoffice.dao.DAO;
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Reservation;
+import com.example.backoffice.model.ReservationGroup;
 import com.example.backoffice.model.Trajet;
 import com.example.backoffice.model.TrajetReservation;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.time.LocalDate;
@@ -70,15 +72,14 @@ public class ReservationService {
         return reservationRepository.getNonAssigne(date);
     }
 
-    public List<List<Reservation>> getGroup(LocalDate date) throws Exception {
+    public List<ReservationGroup> getGroup(LocalDate date, LocalTime TA) throws Exception {
         List<Reservation> reservations = reservationRepository.getByDateArrivee(date.atStartOfDay());
 
         if (reservations == null || reservations.isEmpty()) {
             throw new Exception("Aucune réservation à traiter");
         }
 
-        LocalTime TA = parametreRepository.getTempsAttente();
-        List<List<Reservation>> groups = new ArrayList<>();
+        List<ReservationGroup> groups = new ArrayList<>();
 
         LocalDateTime windowStart = reservations.get(0).getDateArrivee();
         LocalDateTime windowEnd = windowStart.plusHours(TA.getHour())
@@ -93,7 +94,7 @@ public class ReservationService {
             } else {
                 if (!currentGroup.isEmpty()) {
                     currentGroup.sort(Comparator.comparingInt(Reservation::getNombrePassager).reversed());
-                    groups.add(currentGroup);
+                    groups.add(new ReservationGroup(windowStart, windowEnd, currentGroup));
                 }
                 currentGroup = new ArrayList<>();
                 currentGroup.add(reservation);
@@ -106,46 +107,85 @@ public class ReservationService {
 
         if (!currentGroup.isEmpty()) {
             currentGroup.sort(Comparator.comparingInt(Reservation::getNombrePassager).reversed());
-            groups.add(currentGroup);
+            groups.add(new ReservationGroup(windowStart, windowEnd, currentGroup));
         }
 
         return groups;
     }
 
+    public TrajetReservation assign(Trajet trajet, Reservation reservation,
+            Map<Trajet, List<TrajetReservation>> trajetReservations,
+            Map<String, LocalTime> tripEnd) throws Exception {
+
+        LocalTime heureRetour = tripEnd.get(trajet.getVehicule().getReference());
+        LocalTime heureReservation = reservation.getDateArrivee().toLocalTime();
+
+        if (heureRetour != null && heureRetour.isAfter(heureReservation))
+            heureReservation = heureRetour;
+
+        if (trajet.getHeureDepart().isBefore(heureReservation))
+            trajet.setHeureDepart(heureReservation);
+
+        TrajetReservation trAssigned = trajetService.assigner(trajet, reservation);
+        trajetReservations.computeIfAbsent(trajet, k -> new ArrayList<>()).add(trAssigned);
+
+        return trAssigned;
+    }
+
     public void assignation(LocalDate date) throws Exception {
         trajetService.deleteByDate(date);
 
-        List<List<Reservation>> groups = getGroup(date);
+        LocalTime TA = parametreRepository.getTempsAttente();
+
+        List<ReservationGroup> groups = getGroup(date, TA);
+        List<Reservation> unassigned = new ArrayList<>();
+        Map<String, Integer> tripCount = new HashMap<>();
+        Map<String, LocalTime> tripEnd = new HashMap<>();
         double vitesse = parametreRepository.getVitesseMoyenne();
         Map<String, Double> distances = distanceService.getDistanceMap();
         Hotel aeroport = hotelRepository.getAeroport();
 
-        for (List<Reservation> group : groups) {
+        for (ReservationGroup reservationGroup : groups) {
+            if (!unassigned.isEmpty()) {
+                reservationGroup.getReservations().addAll(unassigned);
+                unassigned.clear();
+            }
+
+            Iterator<Reservation> group = reservationGroup.getReservations().iterator();
             List<Trajet> trajets = new ArrayList<>();
             Map<Trajet, List<TrajetReservation>> trajetReservations = new HashMap<>();
 
-            for (Reservation reservation : group) {
+            while (group.hasNext()) {
+                Reservation reservation = group.next();
                 TrajetReservation trAssigned = null;
+
                 for (Trajet trajet : trajets) {
                     if (trajet.getPlacesRestantes() >= reservation.getNombrePassager()) {
-                        trAssigned = trajetService.assigner(trajet, reservation);
-                        trajetReservations.computeIfAbsent(trajet, k -> new ArrayList<>()).add(trAssigned);
+                        trAssigned = assign(trajet, reservation, trajetReservations,tripEnd);
                         break;
                     }
                 }
 
                 if (trAssigned == null) {
-                    Trajet newTrajet = trajetService.creerTrajet(reservation);
+                    Trajet newTrajet = trajetService.creerTrajet(reservation, reservationGroup.getWindowEnd(),
+                            tripCount);
+
                     if (newTrajet != null) {
-                        trAssigned = trajetService.assigner(newTrajet, reservation);
-                        trajetReservations.put(newTrajet, new ArrayList<>(List.of(trAssigned)));
+                        tripCount.merge(newTrajet.getVehicule().getReference(), 1, Integer::sum);
+
+                        trAssigned = assign(newTrajet, reservation, trajetReservations, tripEnd);
                         trajets.add(newTrajet);
+                    } else {
+                        unassigned.add(reservation);
                     }
                 }
             }
 
             for (Trajet trajet : trajets) {
                 trajetService.preparerTrajet(trajet, trajetReservations.get(trajet), distances, aeroport, vitesse);
+                String ref = trajet.getVehicule().getReference();
+                if (tripEnd.get(ref) == null || trajet.getHeureRetour().isAfter(tripEnd.get(ref)))
+                    tripEnd.put(ref, trajet.getHeureRetour());
             }
         }
     }
