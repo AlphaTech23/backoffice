@@ -74,7 +74,7 @@ public class ReservationService {
 
     public List<ReservationGroup> getGroup(LocalDate date, LocalTime TA) throws Exception {
         List<Reservation> reservations = reservationRepository.getByDateArrivee(date.atStartOfDay());
-
+        System.out.println(date+" "+reservations.size());
         if (reservations == null || reservations.isEmpty()) {
             throw new Exception("Aucune réservation à traiter");
         }
@@ -135,57 +135,70 @@ public class ReservationService {
     public void assignation(LocalDate date) throws Exception {
         trajetService.deleteByDate(date);
 
+        Hotel aeroport = hotelRepository.getAeroport();
         LocalTime TA = parametreRepository.getTempsAttente();
-
+        double vitesse = parametreRepository.getVitesseMoyenne();
+        Map<String, Double> distances = distanceService.getDistanceMap();
         List<ReservationGroup> groups = getGroup(date, TA);
+
         List<Reservation> unassigned = new ArrayList<>();
         Map<String, Integer> tripCount = new HashMap<>();
         Map<String, LocalTime> tripEnd = new HashMap<>();
-        double vitesse = parametreRepository.getVitesseMoyenne();
-        Map<String, Double> distances = distanceService.getDistanceMap();
-        Hotel aeroport = hotelRepository.getAeroport();
 
         for (ReservationGroup reservationGroup : groups) {
-            if (!unassigned.isEmpty()) {
-                reservationGroup.getReservations().addAll(unassigned);
-                unassigned.clear();
-            }
-
-            Iterator<Reservation> group = reservationGroup.getReservations().iterator();
+            List<Reservation> group = new ArrayList<>(reservationGroup.getReservations());
             List<Trajet> trajets = new ArrayList<>();
             Map<Trajet, List<TrajetReservation>> trajetReservations = new HashMap<>();
 
-            while (group.hasNext()) {
-                Reservation reservation = group.next();
-                TrajetReservation trAssigned = null;
-
-                for (Trajet trajet : trajets) {
-                    if (trajet.getPlacesRestantes() >= reservation.getNombrePassager()) {
-                        trAssigned = assign(trajet, reservation, trajetReservations,tripEnd);
-                        break;
-                    }
-                }
-
-                if (trAssigned == null) {
-                    Trajet newTrajet = trajetService.creerTrajet(reservation, reservationGroup.getWindowEnd(),
-                            tripCount);
-
-                    if (newTrajet != null) {
-                        tripCount.merge(newTrajet.getVehicule().getReference(), 1, Integer::sum);
-
-                        trAssigned = assign(newTrajet, reservation, trajetReservations, tripEnd);
-                        trajets.add(newTrajet);
-                    } else {
-                        unassigned.add(reservation);
-                    }
-                }
+            if (!unassigned.isEmpty()) {
+                group.addAll(unassigned);
+                unassigned.clear();
             }
 
-            for (Trajet trajet : trajets) {
-                trajetService.preparerTrajet(trajet, trajetReservations.get(trajet), distances, aeroport, vitesse);
+            while (!group.isEmpty()) {
+                Reservation pivot = group.remove(0);
+
+                Trajet trajet = trajetService.creerTrajet(
+                        pivot,
+                        reservationGroup.getWindowEnd(),
+                        tripCount);
+
+                if (trajet == null) {
+                    unassigned.add(pivot);
+                    continue;
+                }
+
+                tripCount.merge(trajet.getVehicule().getReference(), 1, Integer::sum);
+
+                List<TrajetReservation> trList = new ArrayList<>();
+                trajetReservations.put(trajet, trList);
+
+                assign(trajet, pivot, trajetReservations, tripEnd);
+
+                Iterator<Reservation> iterator = group.iterator();
+
+                while (iterator.hasNext()) {
+                    Reservation r = iterator.next();
+
+                    if (trajet.getPlacesRestantes() >= r.getNombrePassager()) {
+                        assign(trajet, r, trajetReservations, tripEnd);
+                        iterator.remove();
+                    }
+                }
+
+                trajetService.preparerTrajet(
+                        trajet,
+                        trajetReservations.get(trajet),
+                        distances,
+                        aeroport,
+                        vitesse);
+
                 String ref = trajet.getVehicule().getReference();
-                if (tripEnd.get(ref) == null || trajet.getHeureRetour().isAfter(tripEnd.get(ref)))
+                if (tripEnd.get(ref) == null || trajet.getHeureRetour().isAfter(tripEnd.get(ref))) {
                     tripEnd.put(ref, trajet.getHeureRetour());
+                }
+
+                trajets.add(trajet);
             }
         }
     }
