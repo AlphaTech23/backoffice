@@ -74,7 +74,7 @@ public class ReservationService {
 
     public List<ReservationGroup> getGroup(LocalDate date, LocalTime TA) throws Exception {
         List<Reservation> reservations = reservationRepository.getByDateArrivee(date.atStartOfDay());
-        System.out.println(date+" "+reservations.size());
+
         if (reservations == null || reservations.isEmpty()) {
             throw new Exception("Aucune réservation à traiter");
         }
@@ -114,17 +114,7 @@ public class ReservationService {
     }
 
     public TrajetReservation assign(Trajet trajet, Reservation reservation,
-            Map<Trajet, List<TrajetReservation>> trajetReservations,
-            Map<String, LocalTime> tripEnd) throws Exception {
-
-        LocalTime heureRetour = tripEnd.get(trajet.getVehicule().getReference());
-        LocalTime heureReservation = reservation.getDateArrivee().toLocalTime();
-
-        if (heureRetour != null && heureRetour.isAfter(heureReservation))
-            heureReservation = heureRetour;
-
-        if (trajet.getHeureDepart().isBefore(heureReservation))
-            trajet.setHeureDepart(heureReservation);
+            Map<Trajet, List<TrajetReservation>> trajetReservations) throws Exception {
 
         TrajetReservation trAssigned = trajetService.assigner(trajet, reservation);
         trajetReservations.computeIfAbsent(trajet, k -> new ArrayList<>()).add(trAssigned);
@@ -146,9 +136,10 @@ public class ReservationService {
         Map<String, LocalTime> tripEnd = new HashMap<>();
 
         for (ReservationGroup reservationGroup : groups) {
-            List<Reservation> group = new ArrayList<>(reservationGroup.getReservations());
+            LocalTime heureDepart = null;
             List<Trajet> trajets = new ArrayList<>();
             Map<Trajet, List<TrajetReservation>> trajetReservations = new HashMap<>();
+            List<Reservation> group = new ArrayList<>(reservationGroup.getReservations());
 
             if (!unassigned.isEmpty()) {
                 group.addAll(unassigned);
@@ -157,6 +148,10 @@ public class ReservationService {
 
             while (!group.isEmpty()) {
                 Reservation pivot = group.remove(0);
+
+                LocalTime heureArrivee = pivot.getDateArrivee().toLocalTime();
+                if (heureDepart == null || heureDepart.isBefore(heureArrivee))
+                    heureDepart = heureArrivee;
 
                 Trajet trajet = trajetService.creerTrajet(
                         pivot,
@@ -168,12 +163,13 @@ public class ReservationService {
                     continue;
                 }
 
+                LocalTime retourVoiture = tripEnd.get(trajet.getVehicule().getReference());
+                if (retourVoiture != null && heureDepart.isBefore(retourVoiture))
+                    heureDepart = retourVoiture;
+
                 tripCount.merge(trajet.getVehicule().getReference(), 1, Integer::sum);
 
-                List<TrajetReservation> trList = new ArrayList<>();
-                trajetReservations.put(trajet, trList);
-
-                assign(trajet, pivot, trajetReservations, tripEnd);
+                assign(trajet, pivot, trajetReservations);
 
                 Iterator<Reservation> iterator = group.iterator();
 
@@ -181,11 +177,20 @@ public class ReservationService {
                     Reservation r = iterator.next();
 
                     if (trajet.getPlacesRestantes() >= r.getNombrePassager()) {
-                        assign(trajet, r, trajetReservations, tripEnd);
+                        heureArrivee = r.getDateArrivee().toLocalTime();
+                        if (heureDepart.isBefore(heureArrivee))
+                            heureDepart = heureArrivee;
+
+                        assign(trajet, r, trajetReservations);
                         iterator.remove();
                     }
                 }
-
+                
+                trajets.add(trajet);
+            }
+            for (Trajet trajet : trajets) {
+                trajet.setHeureDepart(heureDepart);
+                
                 trajetService.preparerTrajet(
                         trajet,
                         trajetReservations.get(trajet),
@@ -197,8 +202,6 @@ public class ReservationService {
                 if (tripEnd.get(ref) == null || trajet.getHeureRetour().isAfter(tripEnd.get(ref))) {
                     tripEnd.put(ref, trajet.getHeureRetour());
                 }
-
-                trajets.add(trajet);
             }
         }
     }

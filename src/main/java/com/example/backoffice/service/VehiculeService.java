@@ -45,8 +45,8 @@ public class VehiculeService {
             throws Exception {
         List<Vehicule> vehicules = vehiculeRepository.getByCapacite(
                 reservation.getNombrePassager(),
-                reservation.getDateArrivee(),
                 windowEnd);
+        
         if (vehicules == null || vehicules.isEmpty()) {
             return null;
         }

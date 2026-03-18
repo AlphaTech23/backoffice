@@ -4,12 +4,12 @@ features 1: ETU003309
 UPDATE SCRIPT SQL
     - update reservation drop column id_trajet
     - create table trajet_reservation
-
-features 2 : ETU003340
-UPDATE-ASSIGNATION
     TrajetRepository
         - Création de la fonction 
             List<Trajet> getByCapacite(int capacite, LocalDateTime date)
+
+features 2 : ETU003340
+UPDATE-ASSIGNATION
     TrajetService
         - Création des fonctions
             Trajet getDisponible(Reservation reservation)

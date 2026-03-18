@@ -13,7 +13,7 @@ SMART DEPARTURE ADJUSTMENT
     - Modification de la fonction trouverTrajet dans TrajetService
         Trajet trouverTrajet(Reservation reservation, LocalDateTime min, LocalDateTime max)
     
- FIX ASSIGNMENT
+FIX ASSIGNMENT
     - Ajout de la fonction dans TrajetRepository et TrajetService
         void deleteByDate(LocalDate date)
     - Ajout de la fonction dans TrajetReservationRepository et TrajetReservationService
