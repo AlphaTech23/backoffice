@@ -75,17 +75,11 @@ public class ReservationRepository {
 
     public List<Reservation> getNonAssigne(LocalDate date) throws Exception {
         String sql = """
-                    SELECT 
-                        r.id,
-                        r.id_client,
-                        (r.nombre_passager - COALESCE(SUM(tr.nombre_passager), 0)) AS nombre_passager,
-                        r.date_arrivee,
-                        r.id_hotel
+                    SELECT r.*
                     FROM reservation r
-                    LEFT JOIN trajet_reservation tr 
-                        ON tr.id_reservation = r.id
-                    GROUP BY r.id, r.id_client, r.nombre_passager, r.date_arrivee, r.id_hotel
-                    HAVING (r.nombre_passager - COALESCE(SUM(tr.nombre_passager), 0)) > 0
+                    LEFT JOIN trajet_reservation tr
+                    ON tr.id_reservation = r.id
+                    WHERE tr.id IS NULL
                 """;
 
         if (date != null) {

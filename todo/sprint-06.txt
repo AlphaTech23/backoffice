@@ -1,7 +1,7 @@
 TL : ETU003309
 DEV : ETU003301, ETU003340
 
-features 1 : ETU003340
+features 1 : ETU003301
 VEHICULE CAPACITY MANAGEMENT
     Update sql
         - Ajout de la colonne heure_disponible dans vehicule
