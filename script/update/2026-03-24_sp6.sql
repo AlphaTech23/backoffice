@@ -1,0 +1,1 @@
+ALTER TABLE vehicule ADD COLUMN heure_disponible TIME;

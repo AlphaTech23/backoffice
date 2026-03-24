@@ -107,7 +107,7 @@
                     <div class="bg-white/10 p-2 rounded-lg">
                         <i class="fas fa-route text-2xl"></i>
                     </div>
-                    <h1 class="text-xl font-bold">Gestion des Trajets</h1>
+                    <h1 class="text-xl font-bold">Gestion des Trajets ETU-3301 3309 3340</h1>
                 </div>
                 <div class="flex items-center space-x-4 text-sm">
                     <span class="bg-white/20 px-3 py-1 rounded-full">
@@ -301,7 +301,7 @@
                                         <table class="min-w-full text-sm" style="margin-left: 8%;">
                                             <thead>
                                                 <tr class="text-xs text-gray-500 uppercase">
-                                                    <th class="px-2 py-1 text-left">ORDRE</th>
+                                                    <th class="px-2 py-1 text-left">Resevation</th>
                                                     <th class="px-2 py-1 text-left">Client</th>
                                                     <th class="px-2 py-1 text-left">Passagers</th>
                                                     <th class="px-2 py-1 text-left">Hôtel</th>
@@ -310,7 +310,12 @@
                                             <tbody class="divide-y divide-gray-200">
                                                 <% for(TrajetReservation r : resList){ %>
                                                     <tr>
-                                                        <td class="px-2 py-2 font-mono text-xs">#<%= r.getOrdre() %></td>
+                                                        <td class="px-2 py-2">
+                                                            <div class="flex items-center">
+                                                                <i class="fas fa-user text-gray-400 mr-1 text-xs"></i>
+                                                                <span class="text-xs">R<%= r.getReservation().getId() %></span>
+                                                            </div>
+                                                        </td>
                                                         <td class="px-2 py-2">
                                                             <div class="flex items-center">
                                                                 <i class="fas fa-user text-gray-400 mr-1 text-xs"></i>
@@ -319,7 +324,7 @@
                                                         </td>
                                                         <td class="px-2 py-2">
                                                             <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
-                                                                <%= r.getReservation().getNombrePassager() %>
+                                                                <%= r.getNombrePassager() %>
                                                             </span>
                                                         </td>
                                                         <td class="px-2 py-2 text-xs">

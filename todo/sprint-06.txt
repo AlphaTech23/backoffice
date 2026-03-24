@@ -1,0 +1,49 @@
+TL : ETU003309
+DEV : ETU003301, ETU003340
+
+features 1 : ETU003340
+VEHICULE CAPACITY MANAGEMENT
+    Update sql
+        - Ajout de la colonne heure_disponible dans vehicule
+
+    Vehicule
+        - Ajout de l'attribut capaciteRestante, heureDisponible
+        - Ajout de la fonction diminuerCapaciteRestante(Integer difference)
+            void diminuerCapaciteRestante(Integer difference)
+            getters and setters
+
+    VehiculeService
+        - Sélectionner le meilleur véhicule parmi une liste disponible
+            Vehicule getMeilleurVehicule(List<Vehicule> vehicules)
+        - Modification la fonction getDisponible
+            Vehicule getVehiculeDisponible(Reservation reservation, LocalDateTime dateHeureFin)
+
+features 2 : ETU003340
+RESERVATION ASSIGNMENT
+    ReservationService
+        - Grouper les reservations d'une journée selon le temps d'attente
+            List<List<Reservation>> getGroupesReservations(LocalDate date)
+        - Traiter une réservation et créer un trajet si possible
+            Trajet traiterReservation(Reservation reservation, List<Reservation> assignees, List<Reservation> groupeReservations, List<Reservation> groupeReservationsSuivantes, LocalDateTime heureFin)
+        - Assigner une réservation à un trajet
+            void assigner(Reservation reservation, Vehicule vehicule, List<Reservation> assignees, Trajet trajet)
+        - Traiter un groupe de réservations
+            void traiterGroupeReservation(LocalDate date, List<Reservation> groupeReservations, List<Reservation> groupeReservationsSuivantes)
+        - Lancer l’assignation complète d’une journée
+            void assignation(LocalDate date)
+
+features 4 : ETU003301
+TRAJET MANAGEMENT
+    TrajetService
+        - Créer un nouveau trajet à partir d'une réservation et d'un véhicule
+            Trajet creerTrajet(Reservation reservation, Vehicule vehicule)
+        - Préparer les trajets après assignation (heures, ordre, etc.)
+            void preparerTrajet(List<Reservation> assignees, List<Trajet> trajets)
+        - Calculer la distance totale d’un trajet
+            Double calculerDistance(Trajet trajet)
+
+    TrajetReservationService
+        - Créer une association entre une réservation et un trajet
+            TrajetReservation creerTrajetReservation(Reservation reservation, Trajet trajet)
+        - Remplir un véhicule avec les réservations d’un groupe
+            List<TrajetReservation> remplirVehicule(List<Reservation> groupeReservations, List<Reservation> assignees, Trajet trajet)

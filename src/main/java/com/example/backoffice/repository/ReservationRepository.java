@@ -67,7 +67,7 @@ public class ReservationRepository {
         String sql = """
             SELECT * FROM reservation 
             WHERE date(date_arrivee) = date(?) 
-            ORDER BY nombre_passager DESC
+            ORDER BY date_arrivee ASC
         """;
         return dao.getList(sql, Reservation.class,
                 Timestamp.valueOf(dateArrivee));
@@ -75,11 +75,17 @@ public class ReservationRepository {
 
     public List<Reservation> getNonAssigne(LocalDate date) throws Exception {
         String sql = """
-                    SELECT r.*
+                    SELECT 
+                        r.id,
+                        r.id_client,
+                        (r.nombre_passager - COALESCE(SUM(tr.nombre_passager), 0)) AS nombre_passager,
+                        r.date_arrivee,
+                        r.id_hotel
                     FROM reservation r
-                    LEFT JOIN trajet_reservation tr
-                    ON tr.id_reservation = r.id
-                    WHERE tr.id IS NULL
+                    LEFT JOIN trajet_reservation tr 
+                        ON tr.id_reservation = r.id
+                    GROUP BY r.id, r.id_client, r.nombre_passager, r.date_arrivee, r.id_hotel
+                    HAVING (r.nombre_passager - COALESCE(SUM(tr.nombre_passager), 0)) > 0
                 """;
 
         if (date != null) {
@@ -88,5 +94,16 @@ public class ReservationRepository {
         } else {
             return dao.getList(sql, Reservation.class);
         }
+    }
+
+    public List<Reservation> getAssignees(Integer idTrajet) throws Exception {
+        String sql = """
+                    SELECT r.*
+                    FROM reservation r
+                    LEFT JOIN trajet_reservation tr
+                    ON tr.id_reservation = r.id
+                    WHERE tr.id_trajet = ?
+                """;
+        return dao.getList(sql, Reservation.class, idTrajet);
     }
 }
