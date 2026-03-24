@@ -9,28 +9,26 @@ WAIT TIME MANAGEMENT
 
 features 2 : ETU003301
 SMART DEPARTURE ADJUSTMENT
+    ReservationService
+        - Grouper les reservations d'une journée selon le temps d'attente
+            List<List<Reservation>> getGroupesReservations(LocalDate date)
+
     TrajetRepository
         - Modification de la fonction getByCapacite
             Trajet getByCapacite(int capacite, LocalDateTime min, LocalDateTime max)
-            
-    TrajetService
-        - Modification de la fonction trouverTrajet
-            Trajet trouverTrajet(Reservation reservation, LocalDateTime min, LocalDateTime max)
 
-fix : ETU003301
-FIX ASSIGNMENT
+fix : ETU003309
+FIX REPO
     TrajetRepository
         - Ajout de la fonction
             void deleteByDate(LocalDate date)
 
+fix : ETU003301
+FIX REPO
     TrajetService
         - Ajout de la fonction
             void deleteByDate(LocalDate date)
-
-    TrajetReservationRepository
-        - Ajout de la fonction
-            void deleteByDate(LocalDate date)
-
-    TrajetReservationService
-        - Ajout de la fonction
-            void deleteByDate(LocalDate date)
+        - Préparer les trajets après assignation (heures, ordre, etc.)
+            void preparerTrajet(List<Reservation> assignees, List<Trajet> trajets)
+        - Calculer la distance totale d’un trajet
+            Double calculerDistance(Trajet trajet)
