@@ -6,6 +6,7 @@ import com.example.backoffice.model.Vehicule;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class VehiculeRepository {
@@ -14,6 +15,7 @@ public class VehiculeRepository {
     public VehiculeRepository(DAO dao) {
         this.dao = dao;
     }
+
     public void create(Vehicule v) throws Exception {
         String sql = "INSERT INTO vehicule(reference, capacite, id_type_carburant) VALUES (?, ?, ?)";
         dao.executeUpdate(sql, v.getReference(), v.getCapacite(), v.getTypeCarburant().getId());
@@ -39,6 +41,11 @@ public class VehiculeRepository {
                     SELECT *
                         FROM vehicule v
                         WHERE v.capacite >= ?
+                        AND (
+                            v.heure_disponible IS NULL
+                            OR
+                            v.heure_disponible <= ?
+                        )
                         AND NOT EXISTS (
                             SELECT 1
                             FROM trajet t
@@ -46,17 +53,63 @@ public class VehiculeRepository {
                             AND t.date_trajet = ?
                             AND (
                                 t.heure_retour IS NULL
-                                OR ? BETWEEN t.heure_depart AND t.heure_retour
+                                OR (? >= t.heure_depart AND ? < t.heure_retour)
                             )
                         )
-                        ORDER BY v.capacite;
+                        ORDER BY v.capacite ASC
                 """;
 
         return dao.getList(
                 sql,
                 Vehicule.class,
                 capacite,
+                Time.valueOf(date.toLocalTime()),
                 Date.valueOf(date.toLocalDate()),
+                Time.valueOf(date.toLocalTime()),
+                Time.valueOf(date.toLocalTime()));
+    }
+
+    public Integer getNombreTrajets(Integer idVehicule) throws Exception {
+        String sql = """
+                SELECT COUNT(*) FROM trajet WHERE id_vehicule = ?
+                """;
+        return dao.get(sql, Long.class, idVehicule).intValue();
+    }
+
+    public LocalTime getHeureRetour(Integer idVehicule) throws Exception {
+        String sql = """
+                SELECT MAX(heure_retour) FROM trajet WHERE id_vehicule = ?
+                """;
+        return dao.get(sql, LocalTime.class, idVehicule);
+    }
+
+    public List<Vehicule> getVehiculeDisponible(LocalDateTime date) throws Exception {
+        String sql = """
+                    SELECT *
+                        FROM vehicule v
+                        WHERE (
+                            v.heure_disponible IS NULL
+                            OR
+                            v.heure_disponible <= ?
+                        )
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM trajet t
+                            WHERE t.id_vehicule = v.id
+                            AND t.date_trajet = ?
+                            AND (
+                                t.heure_retour IS NULL
+                                OR (? >= t.heure_depart AND ? < t.heure_retour)
+                            )
+                        )
+                        ORDER BY v.capacite DESC
+                """;
+        return dao.getList(
+                sql,
+                Vehicule.class,
+                Time.valueOf(date.toLocalTime()),
+                Date.valueOf(date.toLocalDate()),
+                Time.valueOf(date.toLocalTime()),
                 Time.valueOf(date.toLocalTime()));
     }
 }

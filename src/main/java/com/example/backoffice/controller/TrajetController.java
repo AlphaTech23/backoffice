@@ -56,27 +56,31 @@ public class TrajetController {
     }
 
     @GetMapping("/trajets/planifier")
-    public ModelView planification(String s) {
+    public ModelView planification(String s, String error, LocalDate date) {
         ModelView mv = new ModelView("/trajet/planification.jsp");
-        if("true".equals(s))
+        mv.addAttribute("date", date);
+        if ("true".equals(s))
             mv.addAttribute("message", "Planification effecutee avec succes");
-        else if(s != null)
-            mv.addAttribute("erreur", "Une erreur s'est produite durant la planification");
+        else if (s != null)
+            if (error == null)
+                mv.addAttribute("erreur", "Une erreur s'est produite durant la planification");
+            else
+                mv.addAttribute("erreur", error);
         return mv;
     }
 
     @PostMapping("/trajets/assigner")
     public ModelView assignation(LocalDate date) throws Exception {
-        ModelView mv = new ModelView("planifier?s=true");
+        ModelView mv = new ModelView("planifier?s=true&date=" + date);
         try {
             dao.connect();
-            if(dao.getConnection() != null) 
+            if (dao.getConnection() != null)
                 dao.getConnection().setAutoCommit(false);
             reservationService.assignation(date);
             dao.getConnection().commit();
         } catch (Exception e) {
-            mv.setView("planifier?s=false");
-            if(dao.getConnection() != null) 
+            mv.setView("planifier?s=false&date=" + date + "&error=" + e.getMessage());
+            if (dao.getConnection() != null)
                 dao.getConnection().rollback();
             e.printStackTrace();
         } finally {

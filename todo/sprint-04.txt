@@ -10,10 +10,12 @@ UPDATE-ASSIGNATION
     TrajetRepository
         - Création de la fonction 
             List<Trajet> getByCapacite(int capacite, LocalDateTime date)
+
     TrajetService
         - Création des fonctions
             Trajet getDisponible(Reservation reservation)
             void ordonnerTrajet(Trajet trajet)
             Trajet trouverTrajet(Reservation reservation)
+            
     - ReservationService
         - Modification dans la fonction assigner : creerTrajet -> trouverTrajet

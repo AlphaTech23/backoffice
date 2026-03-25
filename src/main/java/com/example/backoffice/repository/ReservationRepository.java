@@ -67,7 +67,7 @@ public class ReservationRepository {
         String sql = """
             SELECT * FROM reservation 
             WHERE date(date_arrivee) = date(?) 
-            ORDER BY nombre_passager DESC
+            ORDER BY date_arrivee ASC
         """;
         return dao.getList(sql, Reservation.class,
                 Timestamp.valueOf(dateArrivee));
@@ -88,5 +88,16 @@ public class ReservationRepository {
         } else {
             return dao.getList(sql, Reservation.class);
         }
+    }
+
+    public List<Reservation> getAssignees(Integer idTrajet) throws Exception {
+        String sql = """
+                    SELECT r.*
+                    FROM reservation r
+                    LEFT JOIN trajet_reservation tr
+                    ON tr.id_reservation = r.id
+                    WHERE tr.id_trajet = ?
+                """;
+        return dao.getList(sql, Reservation.class, idTrajet);
     }
 }

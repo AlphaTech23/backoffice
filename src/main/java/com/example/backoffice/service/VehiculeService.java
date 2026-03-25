@@ -6,6 +6,7 @@ import com.example.backoffice.model.TypeCarburant;
 import com.example.backoffice.model.Vehicule;
 import com.example.backoffice.repository.VehiculeRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
@@ -39,30 +40,38 @@ public class VehiculeService {
         return vehiculeRepository.getAll();
     }
 
-    public Vehicule getDisponible(Reservation reservation) throws Exception {
-        List<Vehicule> vehicules = vehiculeRepository.getByCapacite(
-            reservation.getNombrePassager(),
-            reservation.getDateArrivee()
-        );
+    public Vehicule getVehiculeDisponible(Reservation reservation, LocalDateTime dateHeureFin) throws Exception {
+        List<Vehicule> vehicules = vehiculeRepository.getByCapacite(reservation.getNombrePassager(),
+                dateHeureFin);
         if (vehicules == null || vehicules.isEmpty()) {
             return null;
         }
-        
-        Vehicule disponible = null;
-        int min = Integer.MAX_VALUE;
+        return getMeilleurVehicule(vehicules);
+    }
 
-        for (Vehicule v : vehicules) {
-            if(v.getCapacite() > min) break;
-            if(min > v.getCapacite()) {
-                min = v.getCapacite();
-                disponible = v;
-            } else if (min == v.getCapacite() && "D".equalsIgnoreCase(v.getTypeCarburant().getCode())) {
-                disponible = v;
+    public Vehicule getMeilleurVehicule(List<Vehicule> vehicules) throws Exception {
+        Vehicule vehiculeDisponible = vehicules.get(0);
+        for (Vehicule vehicule : vehicules) {
+            if (vehicule.getCapacite() > vehiculeDisponible.getCapacite()) {
+                break;
+            } else {
+                Integer nombreTrajetsDisponible = vehiculeRepository.getNombreTrajets(vehiculeDisponible.getId());
+                Integer nombreTrajets = vehiculeRepository.getNombreTrajets(vehicule.getId());
+                if (nombreTrajets < nombreTrajetsDisponible) {
+                    vehiculeDisponible = vehicule;
+                } else if (nombreTrajets == nombreTrajetsDisponible) {
+                    if (vehicule.getTypeCarburant().getCode().equals("D")) {
+                        if (vehicule.getTypeCarburant().getCode().equals("D")) {
+                            Random random = new Random();
+                            int index = random.nextInt(1);
+                            if (index == 0)
+                                vehiculeDisponible = vehicule;
+                        } 
+                        vehiculeDisponible = vehicule;
+                    }
+                }
             }
         }
-
-        if(disponible != null) return disponible;
-        Random random = new Random();
-        return vehicules.get(random.nextInt(vehicules.size()));
+        return vehiculeDisponible;
     }
 }

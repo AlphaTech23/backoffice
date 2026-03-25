@@ -95,9 +95,24 @@ public class DAO {
                     if (rs.next()) {
                         Object value = rs.getObject(1);
 
+                        if(value == null) return null;
+
                         if (value instanceof java.math.BigDecimal && clazz.equals(Double.class)) {
                             return clazz.cast(((java.math.BigDecimal) value).doubleValue());
                         }
+
+                        if (value instanceof Time && clazz.equals(LocalTime.class)) {
+                            return clazz.cast(((Time) value).toLocalTime());
+                        }
+
+                        if (value instanceof Timestamp && clazz.equals(LocalDateTime.class)) {
+                            return clazz.cast(((Timestamp) value).toLocalDateTime());
+                        }
+
+                        if (value instanceof Date && clazz.equals(LocalDate.class)) {
+                            return clazz.cast(((Date) value).toLocalDate());
+                        }
+
 
                         return clazz.cast(value);
                     }
@@ -213,6 +228,9 @@ public class DAO {
                 || clazz == LocalDateTime.class
                 || clazz == LocalDate.class
                 || clazz == LocalTime.class
+                || clazz == Timestamp.class
+                || clazz == Time.class
+                || clazz == Date.class
                 || clazz == java.util.Date.class;
     }
 

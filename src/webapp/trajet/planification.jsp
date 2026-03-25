@@ -83,6 +83,7 @@
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         String message = (String) request.getAttribute("message");
         String error = (String) request.getAttribute("erreur");
+        LocalDate date = (LocalDate) request.getAttribute("date");
     %>
 
     <!-- Navigation -->
@@ -159,7 +160,7 @@
 
                             <div class="relative">
                                 <input type="date"
-                                    value="<%= LocalDate.now() %>"
+                                    value="<%= date != null ? date : LocalDate.now() %>"
                                     name="date"
                                     required
                                     class="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl 
