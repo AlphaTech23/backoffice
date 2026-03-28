@@ -1,0 +1,28 @@
+TL : ETU003301
+DEV : ETU003309, ETU003340
+
+features 1 : ETU003309
+RESERVATION PROCESSING
+    ReservationService
+        - Modification de la fonction traiterReservation
+            Trajet traiterReservation(Reservation reservation, List<Reservation> assignees, List<Reservation> groupeReservations, List<Reservation> groupeReservationsSuivantes, LocalDateTime heureFin)
+
+    TrajetReservationService
+        - Ajouter une fonction de division de réservation
+            Reservation diviserReservation(Reservation reservation, Integer capacite)
+        - Ajouter une fonction de sélection optimisée
+            Reservation getPlusProche(Vehicule vehicule, List<Reservation> reservations, List<Reservation> assignees)
+
+features 2 : ETU003340
+TRAJET-RESERVATION MANAGEMENT
+    TrajetReservationService
+        - Modification de la fonction remplirVehicule
+            List<TrajetReservation> remplirVehicule(List<Reservation> groupeReservations, List<Reservation> assignees, Trajet trajet)
+
+    TrajetService
+        - Ajouter une fonction pour récupérer un véhicule disponible sans contrainte de capacité
+            Vehicule getVehiculeDisponible(LocalDateTime dateHeureFin)
+
+    TrajetRepository
+        - Ajouter une fonction pour récupérer un véhicule disponible sans contrainte de capacité
+            Vehicule getVehiculeDisponible(LocalDateTime date)
