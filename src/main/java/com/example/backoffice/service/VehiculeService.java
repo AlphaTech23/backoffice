@@ -49,7 +49,15 @@ public class VehiculeService {
         return getMeilleurVehicule(vehicules);
     }
 
-    public Vehicule getMeilleurVehicule(List<Vehicule> vehicules) throws Exception {
+    public Vehicule getVehiculeDisponible(LocalDateTime dateHeureFin) throws Exception {
+        List<Vehicule> vehicules = vehiculeRepository.getVehiculeDisponible(dateHeureFin);
+        if (vehicules == null || vehicules.isEmpty()) {
+            return null;
+        }
+        return getMeilleurVehicule(vehicules);
+    }
+
+    private Vehicule getMeilleurVehicule(List<Vehicule> vehicules) throws Exception {
         Vehicule vehiculeDisponible = vehicules.get(0);
         for (Vehicule vehicule : vehicules) {
             if (vehicule.getCapacite() > vehiculeDisponible.getCapacite()) {
@@ -66,7 +74,7 @@ public class VehiculeService {
                             int index = random.nextInt(1);
                             if (index == 0)
                                 vehiculeDisponible = vehicule;
-                        } 
+                        }
                         vehiculeDisponible = vehicule;
                     }
                 }
