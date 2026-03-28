@@ -324,7 +324,7 @@
                                                         </td>
                                                         <td class="px-2 py-2">
                                                             <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
-                                                                <%= r.getReservation().getNombrePassager() %>
+                                                                <%= r.getNombrePassager() %>
                                                             </span>
                                                         </td>
                                                         <td class="px-2 py-2 text-xs">
