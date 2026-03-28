@@ -76,11 +76,14 @@ public class VehiculeRepository {
         return dao.get(sql, Long.class, idVehicule).intValue();
     }
 
-    public LocalTime getHeureRetour(Integer idVehicule) throws Exception {
+    public LocalTime getHeureRetour(Vehicule vehicule) throws Exception {
         String sql = """
                 SELECT MAX(heure_retour) FROM trajet WHERE id_vehicule = ?
                 """;
-        return dao.get(sql, LocalTime.class, idVehicule);
+        LocalTime heureRetour = dao.get(sql, LocalTime.class, vehicule.getId());
+        if (heureRetour == null)
+            return vehicule.getHeureDisponible();
+        return heureRetour;
     }
 
     public List<Vehicule> getVehiculeDisponible(LocalDateTime date) throws Exception {
@@ -111,5 +114,35 @@ public class VehiculeRepository {
                 Date.valueOf(date.toLocalDate()),
                 Time.valueOf(date.toLocalTime()),
                 Time.valueOf(date.toLocalTime()));
+    }
+
+    public List<Vehicule> getPremiersVehicules(LocalDateTime dateHeureFin,
+            LocalDateTime dateHeureProchain) throws Exception {
+        String sql = """
+                    SELECT
+                        v.*
+                    FROM vehicule v
+                    LEFT JOIN trajet t ON t.id_vehicule = v.id
+                    AND t.date_trajet = ?
+                    GROUP BY v.id, v.reference, v.capacite, v.heure_disponible
+                    HAVING (
+                        MAX(t.heure_retour) IS NULL AND (
+                            v.heure_disponible IS NULL
+                            OR v.heure_disponible BETWEEN ? AND ?
+                        )
+                    ) OR (
+                        MAX(t.heure_retour) IS NOT NULL AND
+                        MAX(t.heure_retour) BETWEEN ? AND ?
+                    )
+                    ORDER BY MAX(t.heure_retour)
+                """;
+        return dao.getList(
+                sql,
+                Vehicule.class,
+                Date.valueOf(dateHeureFin.toLocalDate()),
+                Time.valueOf(dateHeureFin.toLocalTime()),
+                Time.valueOf(dateHeureProchain.toLocalTime()),
+                Time.valueOf(dateHeureFin.toLocalTime()),
+                Time.valueOf(dateHeureProchain.toLocalTime()));
     }
 }
