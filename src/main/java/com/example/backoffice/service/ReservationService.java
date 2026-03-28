@@ -4,6 +4,7 @@ import com.example.backoffice.repository.ParametreRepository;
 import com.example.backoffice.repository.ReservationRepository;
 import com.example.backoffice.util.Utils;
 import com.example.backoffice.dao.DAO;
+import com.example.backoffice.model.GroupeReservation;
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Reservation;
 import com.example.backoffice.model.Trajet;
@@ -73,105 +74,139 @@ public class ReservationService {
         return reservationRepository.getNonAssigne(date);
     }
 
-    List<List<Reservation>> getGroupesReservations(LocalDate date) throws Exception {
-        List<Reservation> reservations = reservationRepository.getByDateArrivee(date.atStartOfDay());
+    private GroupeReservation getNextGroupesReservations(LocalDate date, LocalDateTime dateHeureDebut,
+            List<Reservation> reservations) throws Exception {
+
+        if (dateHeureDebut == null) {
+            return null;
+        }
+
         LocalTime tempsAttente = parametreRepository.getTempsAttente();
         if (reservations == null || reservations.isEmpty()) {
             throw new Exception("Aucune reservation a traiter");
         }
-        LocalDateTime dateHeureDebut = reservations.get(0).getDateArrivee();
         LocalDateTime dateHeureFin = dateHeureDebut.plusHours(tempsAttente.getHour())
                 .plusMinutes(tempsAttente.getMinute())
                 .plusSeconds(tempsAttente.getSecond());
+        LocalDateTime dateHeureProchain = null;
 
-        List<List<Reservation>> groupes = new ArrayList<>();
         List<Reservation> groupeReservations = new ArrayList<>();
 
         for (Reservation reservation : reservations) {
             if (Utils.isBetween(reservation.getDateArrivee(),
                     dateHeureDebut, dateHeureFin)) {
                 groupeReservations.add(reservation);
-            } else {
-                dateHeureDebut = reservation.getDateArrivee();
-                dateHeureFin = dateHeureDebut.plusHours(tempsAttente.getHour())
-                        .plusMinutes(tempsAttente.getMinute())
-                        .plusSeconds(tempsAttente.getSecond());
-                groupes.add(groupeReservations);
-                groupeReservations = new ArrayList<>();
-                groupeReservations.add(reservation);
+            } else if (dateHeureFin.isBefore(reservation.getDateArrivee())) {
+                dateHeureProchain = reservation.getDateArrivee();
+                break;
             }
         }
-        if (!groupeReservations.isEmpty()) {
-            groupes.add(groupeReservations);
-        }
 
-        return groupes;
+        if (groupeReservations.isEmpty())
+            return null;
+
+        return new GroupeReservation(groupeReservations, dateHeureDebut, dateHeureFin, dateHeureProchain);
     }
 
     public Trajet traiterReservation(Reservation reservation,
             List<Reservation> assignees,
             List<Reservation> groupeReservations,
-            List<Reservation> groupeReservationsSuivantes,
+            List<Reservation> nonAssignees,
             LocalDateTime heureFin) throws Exception {
+
         if (!assignees.contains(reservation)) {
             Vehicule vehiculeDisponible = vehiculeService.getVehiculeDisponible(reservation, heureFin);
             if (vehiculeDisponible != null) {
                 Trajet trajet = trajetService.creerTrajet(reservation, vehiculeDisponible);
-                assigner(reservation, vehiculeDisponible, assignees, trajet);
+                trajetReservationService.assigner(reservation, vehiculeDisponible, assignees, trajet);
 
                 trajetReservationService.remplirVehicule(groupeReservations, assignees, trajet);
 
                 return trajet;
+            } else {
+                // sprint-7
+                Vehicule vehicule = vehiculeService.getVehiculeDisponible(heureFin);
+                if (vehicule != null) {
+                    Trajet trajet = trajetService.creerTrajet(reservation, vehicule);
+                    Reservation reservationRestante = trajetReservationService.diviserReservation(reservation,
+                            vehicule.getCapacite());
+
+                    trajetReservationService.assigner(reservation, vehicule, assignees, trajet);
+
+                    if (reservationRestante.getNombrePassager() > 0) {
+                        groupeReservations.add(0, reservationRestante);
+                    }
+
+                    return trajet;
+                } else {
+                    nonAssignees.add(reservation);
+                }
             }
         }
         return null;
     }
 
-    public void assigner(Reservation reservation, Vehicule vehicule,
-            List<Reservation> assignees, Trajet trajet) throws Exception {
-
-        trajetReservationService.creerTrajetReservation(reservation, trajet);
-        assignees.add(reservation);
-
-        trajet.getVehicule().diminuerCapaciteRestante(reservation.getNombrePassager());
-
-    }
-
-    public void traiterGroupeReservation(LocalDate date, List<Reservation> groupeReservations,
-            List<Reservation> groupeReservationsSuivantes) throws Exception {
-
+    public List<Trajet> traiterSousGroupeReservation(LocalDate date,
+            LocalDateTime dateHeureDebut,
+            List<Reservation> assignees,
+            List<Reservation> groupeReservations,
+            List<Reservation> nonAssignees) throws Exception {
+        if (groupeReservations.isEmpty() || groupeReservations == null) {
+            return new ArrayList<>();
+        }
         LocalTime tempsAttente = parametreRepository.getTempsAttente();
-        LocalDateTime heureDebut = groupeReservations.get(0).getDateArrivee();
-        LocalDateTime heureFin = heureDebut.plusHours(tempsAttente.getHour())
+        LocalDateTime heureFin = dateHeureDebut.plusHours(tempsAttente.getHour())
                 .plusMinutes(tempsAttente.getMinute())
                 .plusSeconds(tempsAttente.getSecond());
 
         groupeReservations.sort(RESERVATION_COMPARATOR);
 
-        List<Reservation> assignees = new ArrayList<>();
         List<Trajet> trajets = new ArrayList<>();
         for (int i = 0; i < groupeReservations.size(); i++) {
             int size = groupeReservations.size();
             Reservation reservation = groupeReservations.get(i);
             Trajet trajet = traiterReservation(reservation, assignees, groupeReservations,
-                    groupeReservationsSuivantes, heureFin);
+                    nonAssignees, heureFin);
             if (size != groupeReservations.size()) {
                 i = -1;
             }
             if (trajet != null)
                 trajets.add(trajet);
         }
+        return trajets;
+    }
+
+    public List<Reservation> traiterGroupeReservation(LocalDate date,
+            List<Reservation> groupeReservations,
+            List<Reservation> nonAssigneesPrecedents,
+            List<Reservation> assignees) throws Exception {
+
+        List<Reservation> nonAssigneesActuelles = new ArrayList<>();
+
+        LocalDateTime heureDebut = groupeReservations.get(0).getDateArrivee();
+
+        groupeReservations.addAll(nonAssigneesPrecedents);
+        List<Trajet> trajets = traiterSousGroupeReservation(date, heureDebut, assignees, groupeReservations,
+                nonAssigneesActuelles);
+
         trajetService.preparerTrajet(assignees, trajets);
+
+        return nonAssigneesActuelles;
     }
 
     public void assignation(LocalDate date) throws Exception {
         trajetService.deleteByDate(date);
-        List<List<Reservation>> groupes = getGroupesReservations(date);
-        for (int i = 0; i < groupes.size(); i++) {
-            if (i + 1 < groupes.size())
-                traiterGroupeReservation(date, groupes.get(i), groupes.get(i + 1));
-            else
-                traiterGroupeReservation(date, groupes.get(i), null);
+
+        List<Reservation> reservations = reservationRepository.getByDateArrivee(date.atStartOfDay());
+        GroupeReservation groupeReservation = getNextGroupesReservations(date, reservations.get(0).getDateArrivee(),
+                reservations);
+        List<Reservation> nonAssignees = new ArrayList<>();
+        List<Reservation> assignees = new ArrayList<>();
+
+        while (groupeReservation != null) {
+            nonAssignees = traiterGroupeReservation(date, groupeReservation.getReservations(), nonAssignees, assignees);
+            groupeReservation = getNextGroupesReservations(date, groupeReservation.getDateHeureProchain(),
+                    reservations);
         }
     }
 }
