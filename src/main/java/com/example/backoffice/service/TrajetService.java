@@ -72,7 +72,7 @@ public class TrajetService {
 
         LocalTime heureDepart = assignees.get(0).getDateArrivee().toLocalTime();
         for (Trajet trajet : trajets) {
-            LocalTime heureRetour = vehiculeRepository.getHeureRetour(trajet.getVehicule().getId());
+            LocalTime heureRetour = vehiculeRepository.getHeureRetour(trajet.getVehicule());
 
             if (heureRetour != null && !heureRetour.isBefore(heureDepart)) {
                 heureDepart = heureRetour;
@@ -130,10 +130,14 @@ public class TrajetService {
     public void preparerTrajet(List<Reservation> assignees, List<Trajet> trajets) throws Exception {
         LocalTime heureDepart = getHeureDepart(assignees, trajets);
         for (Trajet trajet : trajets) {
-            trajet.setHeureDepart(heureDepart);
-            calculerItineraire(trajet);
-            save(trajet);
+            preparerTrajet(trajet, heureDepart);
         }
+    }
+
+    public void preparerTrajet(Trajet trajet, LocalTime heureDepart) throws Exception {
+        trajet.setHeureDepart(heureDepart);
+        calculerItineraire(trajet);
+        save(trajet);
     }
 
     public Trajet creerTrajet(Reservation reservation, Vehicule vehicule) throws Exception {
@@ -143,5 +147,4 @@ public class TrajetService {
         save(trajet);
         return trajet;
     }
-
 }

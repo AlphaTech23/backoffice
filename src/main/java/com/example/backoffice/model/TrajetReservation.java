@@ -5,6 +5,7 @@ public class TrajetReservation {
     private Trajet trajet;
     private Reservation reservation;
     private Integer ordre;
+    private Integer nombrePassager;
 
     public TrajetReservation() {
         
@@ -47,5 +48,13 @@ public class TrajetReservation {
 
     public void setOrdre(Integer ordre) {
         this.ordre = ordre;
+    }
+
+    public Integer getNombrePassager() {
+        return nombrePassager;
+    }
+
+    public void setNombrePassager(Integer nombrePassager) {
+        this.nombrePassager = nombrePassager;
     }
 }

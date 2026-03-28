@@ -46,12 +46,14 @@ public class Vehicule {
     }
 
     public Integer getCapaciteRestante() {
-        if(capaciteRestante == null) capaciteRestante = capacite;
+        if (capaciteRestante == null)
+            capaciteRestante = capacite;
         return capaciteRestante;
     }
 
     public void diminuerCapaciteRestante(Integer difference) {
-        if(capaciteRestante == null) capaciteRestante = capacite;
+        if (capaciteRestante == null)
+            capaciteRestante = capacite;
         this.capaciteRestante -= difference;
     }
 
@@ -63,8 +65,9 @@ public class Vehicule {
         this.typeCarburant = typeCarburant;
     }
 
-    
     public LocalTime getHeureDisponible() {
+        if(heureDisponible == null)
+            return LocalTime.MIN;
         return heureDisponible;
     }
 
