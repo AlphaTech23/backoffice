@@ -38,20 +38,21 @@ public class TrajetReservationRepository {
         if (trajetReservation.getId() == null) {
 
             String sql = """
-                        INSERT INTO trajet_reservation (id_trajet, id_reservation, ordre)
-                        VALUES (?, ?, ?)
+                        INSERT INTO trajet_reservation (id_trajet, id_reservation, ordre, nombre_passager)
+                        VALUES (?, ?, ?, ?)
                     """;
 
             dao.executeUpdate(
                     sql,
                     trajetReservation.getTrajet().getId(),
                     trajetReservation.getReservation().getId(),
-                    trajetReservation.getOrdre());
+                    trajetReservation.getOrdre(),
+                    trajetReservation.getNombrePassager());
         } else {
 
             String sql = """
                         UPDATE trajet_reservation
-                        SET id_trajet = ?, id_reservation = ?, ordre = ?
+                        SET id_trajet = ?, id_reservation = ?, ordre = ?, nombre_passager = ?
                         WHERE id = ?
                     """;
 
@@ -60,6 +61,7 @@ public class TrajetReservationRepository {
                     trajetReservation.getTrajet().getId(),
                     trajetReservation.getReservation().getId(),
                     trajetReservation.getOrdre(),
+                    trajetReservation.getNombrePassager(),
                     trajetReservation.getId());
             if(id > 0) trajetReservation.setId(id); 
         }
