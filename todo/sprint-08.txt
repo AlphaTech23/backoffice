@@ -1,0 +1,131 @@
+TL : ETU003340
+DEV: ETU003301, ETU003309
+
+Features 1 : Return Vehicle Selection -> ETU003309
+    VehiculeService
+        Creer les fonctions suivantes :
+            - Vehicule getRetourVehicule(List<Vehicule> vehicules, int nombrePassager)
+                + Initialiser la variable a retourner : vehiculeResultat = null
+                + Filtrer les véhicules capables de prendre tous les passagers
+                    * Créer une liste fullFit (type : List<Vehicule>)
+                    * Ajouter tous les véhicules tels que : capaciteRestante >= nombrePassager
+                + Trier les véhicules "fullFit" par capaciteRestante croissante
+                + Si fullFit n'est pas vide : 
+                    * Appeler la logique métier pour choisir le meilleur (getMeilleurVehicule)
+                    * Affecter le résultat à vehiculeResultat
+                + Sinon : 
+                    * Filtrer les véhicules partiellement adaptés
+                        - Créer une liste partialFit (type : List<Vehicule>)
+                        - Ajouter tous les véhicules tels que : 
+                            capaciteRestante < nombrePassager ET capaciteRestante > 0
+                    * Trier les véhicules "partialFit" par capaciteRestante décroissante
+                    * Si partialFit n'est pas vide :
+                        - Appeler la logique métier pour choisir le meilleur (getMeilleurVehicule)
+                        - Affecter le résultat à vehiculeResultat
+                + Retourner vehiculeResultat
+            
+            - List<Vehicule> getPremiersVehicules(LocalDateTime dateHeureFin, LocalDateTime dateHeureProchain)
+                + Appeler la fonction getPremiersVehicules qui est dans VehiculeRepository
+                    * Entrees : dateHeureFin, dateHeureProchain
+                + Affecter cette fonction à la variable List<Vehicule> vehicules
+                + Si vehicules == null OU vehicules vide : retourner null
+                + Initialiser la variable a retourner : premiersVehicules (type : List<Vehicule>)
+                + Appeler la fonction getHeureRetour qui est dans VehiculeRepository
+                    * Entree : vehicules.get(0)
+                + Affecter cette fonction à la variable LocalTime minRetour
+                + Parcourir la liste vehicules
+                    * Appeler la fonction getHeureRetour qui est dans VehiculeRepository
+                        - Entree : vehicules.get(i)
+                    * Affecter cette fonction à la variable LocalTime heureRetour
+                    * Si minRetour = heureRetour :
+                        - Ajouter vehicules.get(i) dans premiersVehicules 
+                    * Sinon :
+                        - break
+                + Retourner premiersVehicules
+
+Features 2 : Return Trip Assignment -> ETU003309
+    TrajetService
+        Creer la fonction suivante : 
+            - Trajet traiterRetourVehicule(List<Reservation> nonAssignees, List<Reservation> assignees,
+                LocalDateTime dateHeureFin, LocalDateTime dateHeureProchain)
+                + Si nonAssignees == null OU nonAssignees vide : retourner null
+                + Trier nonAssignees par nombrePassager décroissante puis par dateArrivee
+                + Appeler la fonction getPremiersVehicules qui est dans VehiculeService
+                    * Entrees : dateHeureFin, dateHeureProchain
+                + Affecter cette fonction à la variable List<Vehicule> vehicules
+                + Si vehicules == null OU vehicules vide : retourner null
+                + Parcourir la liste nonAssignees :
+                    * Si assignees ne contient pas nonAssignees.get(i) :
+                        - Appeler la fonction getRetourVehicule qui est dans VehiculeService
+                            * Entrees : vehicules, nonAssignees.get(i).getNombrePassager()
+                        - Affecter cette fonction à la variable Vehicule vehicule
+                        - Appeler la fonction creerTrajet qui est dans TrajetService
+                            * Entrees : nonAssignees.get(i), vehicule
+                        - Affecter cette fonction à la variable Trajet trajet
+                        - Appeler la fonction assigner qui est dans TrajetReservationService
+                            * Entrees : nonAssignees.get(i), vehicule, assignees, trajet
+                        - Appeler la fonction remplirVehicule qui est dans TrajetReservationService
+                            * Entrees : nonAssignees, assignees, trajet
+                        - Appeler la fonction getHeureRetour qui est dans VehiculeRepository
+                            * Entree : vehicule
+                        - Affecter cette fonction à la variable LocalTime heureDepart
+                        - Si vehicule.getCapaciteRestante() > 0 : 
+                            * Modifier l'heure de depart de trajet par heureDepart
+                            * Retourner trajet
+                        - Sinon : 
+                            * Appeler la focntion preparerTrajet qui est dans TrajetService
+                                - Entrees : trajet, heureDepart
+                + Retourner null
+
+Features 3 : Reservation Assignment Refactor -> ETU003309
+ReservationService
+    Modifier les fonctions suivantes : 
+        - List<Reservation> traiterGroupeReservation(LocalDate date, List<Reservation> groupeReservations,
+            List<Reservation> nonAssigneesPrecedents, List<Reservation> assignees)
+            + Supprimer ces deux lignes : 
+                * groupeReservations.addAll(nonAssigneesPrecedents)
+                * List<Trajet> trajets = traiterSousGroupeReservation(date, heureDebut, assignees, groupeReservations, nonAssigneesActuelles);
+            + Remplacer par :
+                * Appeler la fonction traiterSousGroupeReservation qui est dans ReservationService
+                    - Entrees : date, heureDebut, assignees, nonAssigneesPrecedents, nonAssigneesActuelles
+                * Affecter cette fonction à la variable List<Trajet> trajets
+                * Declarer une variable qui prend le dernier indice de la liste trajets : lastIndex (type : int)
+                * Si lastIndex n'est pas negatif ET trajets.get(lastIndex).getVehicule().getCapaciteRestante() > 0 :
+                    - Appeler la fonction remplirVehicule qui est dans TrajetReservationService
+                        * Entrees : groupeReservations, assignees, trajets.get(lastIndex)
+                * Appeler la fonction traiterSousGroupeReservation qui est dans ReservationService
+                    - Entrees : date, heureDebut, assignees, groupeReservations, nonAssigneesActuelles
+                * Affecter cette fonction à la variable List<Trajet> trajets2
+                * Ajouter trajets2 dans trajets
+        
+        - void assignation(LocalDate date)
+            + Dans la boucle tant que groupeReservation != null :
+                * Ajouter cette condition au debut :
+                    - Si groupeReservation.getDateHeureProchain() == null : 
+                        * Modifier dateHeureProchain par LocalTime.MAX.atDate(date)
+                * Supprimer cette ligne : 
+                    - groupeReservation = getNextGroupesReservations(date, groupeReservation.getDateHeureProchain(),
+                    reservations);
+                * Ajouter ces instructions :
+                    - Appeler la fonction traiterRetourVehicule qui est dans TrajetService
+                        * Entrees : nonAssignees, assignees, groupeReservation.getDateHeureFin(), 
+                                    groupeReservation.getDateHeureProchain()
+                    - Affecter cette fonction à la variable Trajet trajet
+                    - Si trajet == null :
+                        * Appeler la fonction getNextGroupesReservations qui est dans ReservationService
+                            - Entrees : date, groupeReservation.getDateHeureProchain(), reservations
+                        * Affecter cette fonction à la variable groupeReservation
+                    - Sinon :
+                        * Declarer une liste de reservation assignees temporaires vides : assigneesTemp (type : List<Reservation>)
+                        * Appeler la fonction getNextGroupesReservations qui est dans ReservationService
+                            - Entrees : date, trajet.getHeureDepart().atDate(date), reservations
+                        * Affecter cette fonction à la variable groupeReservation
+                        * Si groupeReservation != null : 
+                            - Appeler la fonction remplirVehicule qui est dans TrajetReservationService
+                                * Entrees : groupeReservation.getReservations(), assigneesTemp, trajet
+                        * Appeler la fonction getMaxHeureRetour qui est dans Utils
+                            - Entrees : assigneesTemp, trajet.getHeureDepart().atDate(date)
+                        * Affecter cette fonction à la variable LocalTime heureDepart
+                        * Appeler la fonction preparerTrajet qui est dans TrajetService
+                            - Entrees : trajet, heureDepart
+                        * Effacer dans la liste de reservations de groupeReservation assigneesTemp
