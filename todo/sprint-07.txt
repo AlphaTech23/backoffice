@@ -1,7 +1,7 @@
 TL : ETU003301
 DEV : ETU003309, ETU003340
 
-features 1 : ETU003309
+features 1 : ETU003340
 RESERVATION PROCESSING
     ReservationService
         - Modification de la fonction traiterReservation
