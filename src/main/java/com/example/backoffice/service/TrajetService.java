@@ -1,6 +1,7 @@
 package com.example.backoffice.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.example.backoffice.model.Hotel;
 import com.example.backoffice.model.Reservation;
@@ -27,6 +28,8 @@ public class TrajetService {
     private final VehiculeRepository vehiculeRepository;
     private final ReservationRepository reservationRepository;
     private final DistanceService distanceService;
+    private final VehiculeService vehiculeService;
+    private final TrajetReservationService trajetReservationService;
 
     public TrajetService(DAO dao) {
         this.trajetRepository = new TrajetRepository(dao);
@@ -35,6 +38,8 @@ public class TrajetService {
         this.vehiculeRepository = new VehiculeRepository(dao);
         this.reservationRepository = new ReservationRepository(dao);
         this.distanceService = new DistanceService(dao);
+        this.vehiculeService = new VehiculeService(dao);
+        this.trajetReservationService = new TrajetReservationService(dao);
     }
 
     public void save(Trajet trajet) throws Exception {
@@ -146,5 +151,47 @@ public class TrajetService {
         trajet.setVehicule(vehicule);
         save(trajet);
         return trajet;
+    }
+
+    public Trajet traiterRetourVehicule(List<Reservation> nonAssignees, List<Reservation> assignees,
+            LocalDateTime dateHeureFin, LocalDateTime dateHeureProchain) throws Exception {
+
+        if (nonAssignees == null || nonAssignees.isEmpty()) {
+            return null;
+        }
+
+        // Trier nonAssignees par nombrePassager décroissante puis par dateArrivee
+        nonAssignees.sort(Comparator.comparingInt(Reservation::getNombrePassager)
+                .reversed()
+                .thenComparing(Reservation::getDateArrivee));
+
+        List<Vehicule> vehicules = vehiculeService.getPremiersVehicules(dateHeureFin, dateHeureProchain);
+
+        if (vehicules == null || vehicules.isEmpty()) {
+            return null;
+        }
+
+        for (int i = 0; i < nonAssignees.size(); i++) {
+            if (!assignees.contains(nonAssignees.get(i))) {
+                Vehicule vehicule = vehiculeService.getRetourVehicule(vehicules,
+                        nonAssignees.get(i).getNombrePassager());
+
+                Trajet trajet = creerTrajet(nonAssignees.get(i), vehicule);
+
+                trajetReservationService.assigner(nonAssignees.get(i), vehicule, assignees, trajet);
+                trajetReservationService.remplirVehicule(nonAssignees, assignees, trajet);
+
+                LocalTime heureDepart = vehiculeRepository.getHeureRetour(vehicule);
+
+                if (vehicule.getCapaciteRestante() > 0) {
+                    trajet.setHeureDepart(heureDepart);
+                    return trajet;
+                } else {
+                    preparerTrajet(trajet, heureDepart);
+                }
+            }
+        }
+
+        return null;
     }
 }
