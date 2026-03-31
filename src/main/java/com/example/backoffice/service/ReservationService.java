@@ -185,9 +185,17 @@ public class ReservationService {
 
         LocalDateTime heureDebut = groupeReservations.get(0).getDateArrivee();
 
-        groupeReservations.addAll(nonAssigneesPrecedents);
-        List<Trajet> trajets = traiterSousGroupeReservation(date, heureDebut, assignees, groupeReservations,
+        List<Trajet> trajets = traiterSousGroupeReservation(date, heureDebut, assignees, nonAssigneesPrecedents,
                 nonAssigneesActuelles);
+
+        int lastIndex = trajets.size() - 1;
+        if (lastIndex >= 0 && trajets.get(lastIndex).getVehicule().getCapaciteRestante() > 0) {
+            trajetReservationService.remplirVehicule(groupeReservations, assignees, trajets.get(lastIndex));
+        }
+
+        List<Trajet> trajets2 = traiterSousGroupeReservation(date, heureDebut, assignees, groupeReservations,
+                nonAssigneesActuelles);
+        trajets.addAll(trajets2);
 
         trajetService.preparerTrajet(assignees, trajets);
 
@@ -203,10 +211,36 @@ public class ReservationService {
         List<Reservation> nonAssignees = new ArrayList<>();
         List<Reservation> assignees = new ArrayList<>();
 
+        LocalDateTime dateHeureProchain;
         while (groupeReservation != null) {
+            if (groupeReservation.getDateHeureProchain() == null) {
+                dateHeureProchain = LocalTime.MAX.atDate(date);
+            } else {
+                dateHeureProchain = groupeReservation.getDateHeureProchain();
+            }
+
             nonAssignees = traiterGroupeReservation(date, groupeReservation.getReservations(), nonAssignees, assignees);
-            groupeReservation = getNextGroupesReservations(date, groupeReservation.getDateHeureProchain(),
-                    reservations);
+
+            Trajet trajet = trajetService.traiterRetourVehicule(nonAssignees, assignees,
+                    groupeReservation.getDateHeureFin(), dateHeureProchain);
+
+            if (trajet == null) {
+                groupeReservation = getNextGroupesReservations(date, dateHeureProchain, reservations);
+            } else {
+                List<Reservation> assigneesTemp = new ArrayList<>();
+                groupeReservation = getNextGroupesReservations(date,
+                        trajet.getHeureDepart().atDate(date), reservations);
+                if (groupeReservation != null) {
+                    trajetReservationService.remplirVehicule(groupeReservation.getReservations(),
+                            assigneesTemp, trajet);
+                }
+                LocalTime heureDepart = Utils.getMaxHeureRetour(assigneesTemp,
+                        trajet.getHeureDepart().atDate(date));
+                trajetService.preparerTrajet(trajet, heureDepart);
+                if (groupeReservation != null) {
+                    groupeReservation.getReservations().removeAll(assigneesTemp);
+                }
+            }
         }
     }
 }
