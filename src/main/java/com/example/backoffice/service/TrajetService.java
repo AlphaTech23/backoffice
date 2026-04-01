@@ -133,8 +133,10 @@ public class TrajetService {
     }
 
     public void preparerTrajet(List<Reservation> assignees, List<Trajet> trajets) throws Exception {
+        System.out.println("preparation: ");
         LocalTime heureDepart = getHeureDepart(assignees, trajets);
         for (Trajet trajet : trajets) {
+            System.out.println("T" + trajet.getId() + " " + trajet.getVehicule().getReference());
             preparerTrajet(trajet, heureDepart);
         }
     }

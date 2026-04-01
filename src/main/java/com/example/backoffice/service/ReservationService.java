@@ -224,22 +224,21 @@ public class ReservationService {
             Trajet trajet = trajetService.traiterRetourVehicule(nonAssignees, assignees,
                     groupeReservation.getDateHeureFin(), dateHeureProchain);
 
-            if (trajet == null) {
-                groupeReservation = getNextGroupesReservations(date, dateHeureProchain, reservations);
-            } else {
+            if (trajet != null) {
                 List<Reservation> assigneesTemp = new ArrayList<>();
                 groupeReservation = getNextGroupesReservations(date,
                         trajet.getHeureDepart().atDate(date), reservations);
                 if (groupeReservation != null) {
                     trajetReservationService.remplirVehicule(groupeReservation.getReservations(),
                             assigneesTemp, trajet);
+                    groupeReservation.getReservations().removeAll(assigneesTemp);
                 }
                 LocalTime heureDepart = Utils.getMaxHeureRetour(assigneesTemp,
                         trajet.getHeureDepart().atDate(date));
                 trajetService.preparerTrajet(trajet, heureDepart);
-                if (groupeReservation != null) {
-                    groupeReservation.getReservations().removeAll(assigneesTemp);
-                }
+            }
+            if (trajet == null || groupeReservation == null) {
+                groupeReservation = getNextGroupesReservations(date, dateHeureProchain, reservations);
             }
         }
     }
