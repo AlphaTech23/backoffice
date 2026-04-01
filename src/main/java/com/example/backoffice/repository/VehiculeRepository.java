@@ -128,7 +128,7 @@ public class VehiculeRepository {
                     HAVING (
                         MAX(t.heure_retour) IS NULL AND (
                             v.heure_disponible IS NULL
-                            OR v.heure_disponible BETWEEN ? AND ?
+                            OR (v.heure_disponible <= ? AND v.heure_disponible > ?)
                         )
                     ) OR (
                         MAX(t.heure_retour) IS NOT NULL AND
